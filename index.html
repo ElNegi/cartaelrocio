@@ -98,11 +98,12 @@
         
         .item-list-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1a1a1a; gap: 15px; }
         .item-list-row:last-child { border-bottom: none; }
+        .item-list-row:hover { background: rgba(255,255,255,0.02); }
         .item-info-text { flex: 1; }
         .item-info-text p { font-weight: 500; font-size: 1rem; }
         .item-info-text span { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 2px; }
 
-        /* Barra Fija Inferior Sin Desplegable */
+        /* Barra Fija Inferior */
         .order-bar {
             position: fixed; bottom: 0; left: 0; right: 0; background: #141414;
             border-top: 1px solid var(--border-color); padding: 15px 20px; display: flex;
@@ -113,10 +114,11 @@
         .submit-order-btn {
             background: var(--accent-gold); color: #000; border: none; padding: 14px 28px;
             font-family: 'Oswald', sans-serif; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
-            white-space: nowrap; border-radius: 4px; font-size: 1rem;
+            white-space: nowrap; border-radius: 4px; font-size: 1rem; transition: 0.2s;
         }
+        .submit-order-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
 
-        /* --- ESTILOS PANEL DE ADMINISTRACIÓN --- */
+        /* PANEL DE ADMINISTRACIÓN */
         #view-admin { display: none; padding: 30px 20px; background-color: #0d0d0d; width: 100%; max-width: 900px; margin: 0 auto; }
         #view-admin.active { display: block; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; }
@@ -167,7 +169,6 @@
     <div id="view-menu" class="app-view">
         <header>
             <div class="logo-container-short" onclick="verificarAccesoAdmin()">
-                <!-- CORREGIDO: Ahora apunta a tu archivo local logo.png -->
                 <img src="logo.png" alt="Bar El Rocío" class="logo-img">
             </div>
             <div class="current-table-badge" id="display-mesa" onclick="changeLocationFlow()">
@@ -183,8 +184,8 @@
                 </h2>
                 <p style="font-size:0.9rem; color:var(--text-muted); margin-top:8px; text-align:center;" id="taco-rules">Elige 3 tacos en total (combínalos como quieras). Incluye 2 salsas (Verde y Guacamole).</p>
                 
-                <div class="taco-selection-status">
-                    <span id="taco-status-text">Tacos seleccionados: 0 de 3</span>
+                <div class="taco-selection-status" style="text-align:center; margin-top:10px;">
+                    <span id="taco-status-text" style="color:var(--accent-gold); font-weight:bold;">Tacos seleccionados: 0 de 3</span>
                 </div>
 
                 <div class="taco-builder-grid">
@@ -360,12 +361,11 @@
         </div>
     </div>
 
-    <!-- Scripts de Firebase con CDN Compatibles y Estables -->
+    <!-- Scripts estables v9 Compat de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // CONFIGURACIÓN REVISADA DE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk",
             authDomain: "bar-el-rocio.firebaseapp.com",
@@ -376,7 +376,6 @@
             measurementId: "G-BDFRL9LT4R"
         };
 
-        // RECONEXIÓN ASEGURADA: Comprobamos si ya está inicializado para evitar cortes de contexto
         let db;
         try {
             if (!firebase.apps.length) {
@@ -660,19 +659,8 @@
                 extras: listaExtrasFinal,
                 total: totalPrecioFinal,
                 activo: true, 
-                fecha: new Date().toISOString() // <-- CAMBIADO AQUÍ
+                fecha: new Date().toISOString()
             })
-            .then(() => {
-                alert(idiomaActual === 'ja' ? 'ご注文ありがとうございました！' : '¡Pedido enviado directamente a la barra!');
-                location.reload(); 
-            })
-            .catch((error) => {
-                console.error("Error al enviar comanda:", error);
-                alert("Error de conexión con Firestore. Inténtalo de nuevo.");
-                // REACTIVACIÓN DEL BOTÓN EN CASO DE ERROR
-                btnEnviar.disabled = false;
-                btnEnviar.innerText = translations[idiomaActual].btnSubmit;
-            });
             .then(() => {
                 alert(idiomaActual === 'ja' ? 'ご注文ありがとうございました！' : '¡Pedido enviado directamente a la barra!');
                 location.reload(); 
@@ -723,8 +711,12 @@
 
                         let horaTxt = "Ahora";
                         if (pedido.fecha) {
-                            const date = pedido.fecha.toDate();
-                            horaTxt = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            try {
+                                const date = new Date(pedido.fecha);
+                                horaTxt = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            } catch(e) {
+                                horaTxt = "Ahora";
+                            }
                         }
 
                         const card = document.createElement("div");
