@@ -660,8 +660,19 @@
                 extras: listaExtrasFinal,
                 total: totalPrecioFinal,
                 activo: true, 
-                fecha: new Date()
+                fecha: new Date().toISOString() // <-- CAMBIADO AQUÍ
             })
+            .then(() => {
+                alert(idiomaActual === 'ja' ? 'ご注文ありがとうございました！' : '¡Pedido enviado directamente a la barra!');
+                location.reload(); 
+            })
+            .catch((error) => {
+                console.error("Error al enviar comanda:", error);
+                alert("Error de conexión con Firestore. Inténtalo de nuevo.");
+                // REACTIVACIÓN DEL BOTÓN EN CASO DE ERROR
+                btnEnviar.disabled = false;
+                btnEnviar.innerText = translations[idiomaActual].btnSubmit;
+            });
             .then(() => {
                 alert(idiomaActual === 'ja' ? 'ご注文ありがとうございました！' : '¡Pedido enviado directamente a la barra!');
                 location.reload(); 
