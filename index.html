@@ -366,23 +366,25 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
+        // ¡NUEVA CONFIGURACIÓN VINCULADA AL PROYECTO "CARTA-EL-ROCIO"!
         const firebaseConfig = {
-            apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk",
-            authDomain: "bar-el-rocio.firebaseapp.com",
-            projectId: "bar-el-rocio",
-            storageBucket: "bar-el-rocio.firebasestorage.app",
-            messagingSenderId: "1013845009739",
-            appId: "1:1013845009739:web:e829b031541927ccf434ce",
-            measurementId: "G-BDFRL9LT4R"
+            apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", // COMPRUEBA QUE SEA ESTA MISMA EN EL BOTÓN "Config"
+            authDomain: "carta-el-rocio.firebaseapp.com",
+            projectId: "carta-el-rocio",
+            storageBucket: "carta-el-rocio.appspot.com",
+            messagingSenderId: "41452655565",
+            appId: "1:41452655565:web:29efb05a1e9185cc49ea84"
         };
 
         let db;
         try {
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
+            } else {
+                firebase.app(); 
             }
             db = firebase.firestore();
-            console.log("Firebase conectado correctamente a bar-el-rocio");
+            console.log("Firebase conectado correctamente a carta-el-rocio");
         } catch (error) {
             console.error("Error al inicializar Firebase:", error);
             alert("Error crítico de base de datos. Por favor revisa la consola.");
@@ -693,7 +695,6 @@
             if (!db) return;
             if (listenerActivo) return;
 
-            // Eliminado por completo el método orderBy() que exigía la creación de un Índice
             listenerActivo = db.collection("pedidos")
                 .where("activo", "==", true)
                 .onSnapshot((snapshot) => {
