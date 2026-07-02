@@ -2,90 +2,240 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Bar El Rocío - Gestión Profesional</title>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Comandas - El Rocío</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg: #0d0d0d; --card: #141414; --gold: #c5a880; --border: #262626; --green: #2e7d32; --orange: #ef6c00; --red: #c62828; }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; padding-bottom: 50px; }
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #141414;
+            --accent-gold: #c5a880;
+            --text-light: #ffffff;
+            --text-muted: #a6a6a6;
+            --border-color: #262626;
+            --btn-green: #2e7d32;
+            --btn-blue: #1565c0;
+            --btn-orange: #ef6c00;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background-color: var(--bg-color); color: var(--text-light); font-family: 'Montserrat', sans-serif; padding: 20px; }
         
-        header { background: #080808; padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .filter-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
-        .date-input { background: var(--card); color: white; padding: 10px; border: 1px solid var(--border); border-radius: 4px; }
+        .header-admin { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
+        .header-admin h1 { font-family: 'Oswald', sans-serif; font-size: 2rem; color: var(--accent-gold); letter-spacing: 1px; }
+        .btn-refresh { background: var(--accent-gold); color: #000; border: none; padding: 10px 18px; border-radius: 4px; font-family: 'Oswald', sans-serif; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+        
+        /* PESTAÑAS DE NAVEGACIÓN */
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; overflow-x: auto; }
+        .tab-btn { background: #1a1a1a; border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px 20px; font-family: 'Oswald', sans-serif; font-size: 1.1rem; border-radius: 4px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .tab-btn:hover { border-color: var(--accent-gold); color: #fff; }
+        .tab-btn.active { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); font-weight: bold; }
 
-        .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-        .pedido-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; min-height: 380px; }
-        .titulo-seccion { color: var(--gold); font-family: 'Oswald'; border-bottom: 1px solid #333; margin: 15px 0 5px; font-size: 0.85rem; text-transform: uppercase; }
-        .item { font-size: 0.95rem; padding: 4px 0; }
+        /* TARJETAS DE COMANDAS */
+        .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+        .pedido-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 15px; border-top: 4px solid var(--border-color); }
+        .pedido-card.status-pendiente { border-top-color: var(--btn-orange); }
+        .pedido-card.status-realizado { border-top-color: var(--btn-blue); }
+        .pedido-card.status-pagado { border-top-color: var(--btn-green); }
         
-        .acciones { margin-top: auto; display: flex; gap: 5px; padding-top: 15px; }
-        button { flex: 1; border: none; padding: 10px; font-family: 'Oswald'; cursor: pointer; border-radius: 4px; text-transform: uppercase; color: white; font-weight: bold; }
+        .pedido-meta { display: flex; justify-content: space-between; font-family: 'Oswald', sans-serif; color: var(--accent-gold); font-size: 1.25rem; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
+        
+        /* DIVISION INTERNA COCINA/BARRA */
+        .bloque-cocina { background: #0d0d0d; border-radius: 4px; padding: 12px; margin-top: 5px; border-left: 3px solid #333; }
+        .bloque-cocina.listo { border-left-color: var(--btn-green); opacity: 0.6; }
+        .bloque-titulo { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .badge-listo { color: #81c784; font-size: 0.75rem; background: rgba(46,125,50,0.15); padding: 2px 6px; border-radius: 3px; }
+        .bloque-contenido { font-size: 0.95rem; line-height: 1.4; color: #fff; }
+
+        .total-pay { font-family: 'Oswald', sans-serif; font-size: 1.2rem; text-align: right; margin-top: 5px; color: #fff; }
+        
+        /* BOTONERÍA DINÁMICA */
+        .actions-layout { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-action { flex: 1; border: none; padding: 10px; font-family: 'Oswald', sans-serif; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 0.9rem; }
+        .btn-action-bebida { background: var(--btn-blue); }
+        .btn-action-comida { background: var(--btn-orange); }
+        .btn-action-cobrar { background: var(--btn-green); color: #fff; width: 100%; }
+        .btn-action:hover { opacity: 0.9; }
+        
+        .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 60px 20px; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div style="font-family: 'Oswald'; font-size: 1.5rem; color: var(--gold);">PANEL DE PEDIDOS</div>
-        <a href="index.html" style="color:white;"><i class="fa-solid fa-arrow-left"></i></a>
-    </header>
-
-    <div class="filter-container">
-        <input type="date" id="fecha-filtro" class="date-input">
+    <div class="header-admin">
+        <h1><i class="fa-solid fa-bell-concierge"></i> PANEL DE COMANDAS</h1>
+        <button class="btn-refresh" onclick="conectarFirestore()"><i class="fa-solid fa-rotate"></i> Sincronizar</button>
     </div>
 
-    <main class="grid-pedidos" id="contenedor-pedidos"></main>
+    <div class="tabs-container">
+        <button class="tab-btn active" id="tab-pendiente" onclick="cambiarFiltroEstado('pendiente')">Pendientes</button>
+        <button class="tab-btn" id="tab-realizado" onclick="cambiarFiltroEstado('realizado')">Realizados (Por Cobrar)</button>
+        <button class="tab-btn" id="tab-pagado" onclick="cambiarFiltroEstado('pagado')">Pagados (Historial)</button>
+    </div>
 
+    <div class="grid-pedidos" id="contenedor-comandas">
+        <p class="no-data">Conectando a la base de datos en tiempo real...</p>
+    </div>
+
+    <!-- Firebase SDK v9 Compat -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", projectId: "carta-el-rocio" };
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", 
+            authDomain: "carta-el-rocio.firebaseapp.com",
+            projectId: "carta-el-rocio"
+        };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        document.getElementById("fecha-filtro").valueAsDate = new Date();
-        document.getElementById("fecha-filtro").addEventListener("change", e => cargar(e.target.value));
+        let filtroEstadoActual = 'pendiente';
+        let listenerSub = null;
 
-        function cargar(fecha) {
-            const start = new Date(fecha + "T00:00:00").toISOString();
-            const end = new Date(fecha + "T23:59:59").toISOString();
+        function cambiarFiltroEstado(nuevoEstado) {
+            filtroEstadoActual = nuevoEstado;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${nuevoEstado}`).classList.add('active');
+            conectarFirestore();
+        }
 
-            db.collection("pedidos").where("fecha", ">=", start).where("fecha", "<=", end).orderBy("fecha", "desc").onSnapshot(snap => {
-                const cont = document.getElementById("contenedor-pedidos");
-                cont.innerHTML = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const id = doc.id;
-                    const items = [...d.tacos, ...d.extras];
-                    
-                    // Separación de artículos
-                    const bebidas = items.filter(i => /Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(i));
-                    const comida = items.filter(i => !/Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(i));
+        function conectarFirestore() {
+            if (listenerSub) listenerSub(); // Desconectar anteriores para evitar fugas de memoria
 
-                    cont.insertAdjacentHTML("beforeend", `
-                        <div class="pedido-card">
-                            <h3 style="color:var(--gold)">📍 ${d.mesa}</h3>
-                            <div class="titulo-seccion">Comida</div>
-                            ${comida.map(i => `<div class="item">• ${i}</div>`).join('')}
-                            <div class="titulo-seccion">Bebida</div>
-                            ${bebidas.map(i => `<div class="item">• ${i}</div>`).join('')}
-                            
-                            <div class="acciones">
-                                ${d.estado === 'pendiente' ? `<button style="background:var(--orange)" onclick="upd('${id}', 'listo')">LISTO</button>` : 
-                                  d.estado === 'listo' ? `<button style="background:var(--green)" onclick="upd('${id}', 'pagado')">PAGADO</button>` : 
-                                  `<span style="color:var(--green); text-align:center; width:100%; align-self:center; font-weight:bold;">✓ PAGADO</span>`}
-                                <button style="background:var(--red)" onclick="borrar('${id}')">X</button>
+            const contenedor = document.getElementById("contenedor-comandas");
+
+            // Leemos directo del cliente de manera limpia sin depender de índices complejos en Firebase
+            listenerSub = db.collection("pedidos")
+                .onSnapshot((snapshot) => {
+                    contenedor.innerHTML = "";
+                    let contador = 0;
+
+                    snapshot.forEach((doc) => {
+                        const pedido = doc.data();
+                        const idDoc = doc.id;
+
+                        // Filtro de pestaña dinámico en cliente
+                        if (pedido.estado !== filtroEstadoActual) return;
+                        contador++;
+
+                        let hora = "Ahora";
+                        if (pedido.fecha) {
+                            try { hora = new Date(pedido.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); } catch(e) {}
+                        }
+
+                        // Clasificación de Comida (Tacos + Patatas) y Bebidas (Bebidas + Alcohol)
+                        const tieneComida = (pedido.tacos && pedido.tacos.length > 0) || (pedido.extras && pedido.extras.some(i => i.includes("Patatas") || i.includes("フライドポテト")));
+                        const tieneBebida = pedido.extras && pedido.extras.some(i => !i.includes("Patatas") && !i.includes("フライドポテト"));
+
+                        let htmlComida = "";
+                        if (tieneComida) {
+                            let itemsComida = [...(pedido.tacos || [])];
+                            if(pedido.extras) {
+                                pedido.extras.forEach(i => { if(i.includes("Patatas") || i.includes("フライドポテト")) itemsComida.push(i); });
+                            }
+                            const listoComida = pedido.comidaLista === true;
+                            htmlComida = `
+                                <div class="bloque-cocina ${listoComida ? 'listo' : ''}">
+                                    <div class="bloque-titulo"><span>🍳 Cocina / Comida</span> ${listoComida ? '<span class="badge-listo">Listo</span>' : ''}</div>
+                                    <div class="bloque-contenido">${itemsComida.join("<br>")}</div>
+                                </div>`;
+                        }
+
+                        let htmlBebida = "";
+                        if (tieneBebida) {
+                            let itemsBebida = [];
+                            pedido.extras.forEach(i => { if(!i.includes("Patatas") && !i.includes("フライドポテト")) itemsBebida.push(i); });
+                            const listoBebida = pedido.bebidaLista === true;
+                            htmlBebida = `
+                                <div class="bloque-cocina ${listoBebida ? 'listo' : ''}">
+                                    <div class="bloque-titulo"><span>🍺 Barra / Bebida</span> ${listoBebida ? '<span class="badge-listo">Listo</span>' : ''}</div>
+                                    <div class="bloque-contenido">${itemsBebida.join("<br>")}</div>
+                                </div>`;
+                        }
+
+                        // Zona inferior de botones según el estado actual de la pestaña
+                        let htmlBotoneria = "";
+                        if (filtroEstadoActual === 'pendiente') {
+                            htmlBotoneria = `<div class="actions-layout">`;
+                            if (tieneBebida && !pedido.bebidaLista) {
+                                htmlBotoneria += `<button class="btn-action btn-action-bebida" onclick="marcarSeccionListo('${idDoc}', 'bebidaLista')"><i class="fa-solid fa-glass-water"></i> Bebida OK</button>`;
+                            }
+                            if (tieneComida && !pedido.comidaLista) {
+                                htmlBotoneria += `<button class="btn-action btn-action-comida" onclick="marcarSeccionListo('${idDoc}', 'comidaLista')"><i class="fa-solid fa-utensils"></i> Comida OK</button>`;
+                            }
+                            htmlBotoneria += `</div>`;
+                        } else if (filtroEstadoActual === 'realizado') {
+                            htmlBotoneria = `
+                                <div class="actions-layout">
+                                    <button class="btn-action btn-action-cobrar" onclick="cambiarEstadoPedido('${idDoc}', 'pagado')"><i class="fa-solid fa-cash-register"></i> Cobrar Cuenta (¥${pedido.total})</button>
+                                </div>`;
+                        }
+
+                        const card = document.createElement("div");
+                        card.className = `pedido-card status-${filtroEstadoActual}`;
+                        card.innerHTML = `
+                            <div>
+                                <div class="pedido-meta">
+                                    <span>📍 ${pedido.mesa}</span>
+                                    <span>🕒 ${hora}</span>
+                                </div>
+                                ${htmlBebida}
+                                ${htmlComida}
                             </div>
-                        </div>`);
+                            <div>
+                                <div class="total-pay">Total: <strong>¥${pedido.total}</strong></div>
+                                ${htmlBotoneria}
+                            </div>
+                        `;
+                        contenedor.appendChild(card);
+                    });
+
+                    if (contador === 0) {
+                        contenedor.innerHTML = `<p class="no-data">No hay comandas registradas en esta sección.</p>`;
+                    }
+                }, (error) => {
+                    alert("Fallo de lectura en Firestore: " + error.message);
                 });
+        }
+
+        function marcarSeccionListo(idDoc, campo) {
+            let updateData = {};
+            updateData[campo] = true;
+
+            db.collection("pedidos").doc(idDoc).get().then((doc) => {
+                if (!doc.exists) return;
+                const p = doc.data();
+                
+                // Calculamos si con este cambio todo el pedido (bebida y comida) se completó
+                const tieneComida = (p.tacos && p.tacos.length > 0) || (p.extras && p.extras.some(i => i.includes("Patatas") || i.includes("フライドポテト")));
+                const tieneBebida = p.extras && p.extras.some(i => !i.includes("Patatas") && !i.includes("フライドポテト"));
+
+                let finalComida = campo === 'comidaLista' ? true : (p.comidaLista || false);
+                let finalBebida = campo === 'bebidaLista' ? true : (p.bebidaLista || false);
+
+                let checkComida = tieneComida ? finalComida : true;
+                let checkBebida = tieneBebida ? finalBebida : true;
+
+                if (checkComida && checkBebida) {
+                    updateData.estado = 'realizado'; // Se mueve automáticamente a servido por cobrar
+                }
+
+                db.collection("pedidos").doc(idDoc).update(updateData);
             });
         }
 
-        function upd(id, est) { db.collection("pedidos").doc(id).update({estado: est}); }
-        function borrar(id) { if(confirm("¿Borrar pedido?")) db.collection("pedidos").doc(id).delete(); }
+        function cambiarEstadoPedido(idDoc, nuevoEstado) {
+            db.collection("pedidos").doc(idDoc).update({
+                estado: nuevoEstado
+            });
+        }
 
-        cargar(document.getElementById("fecha-filtro").value);
+        // Ejecutar conexión inicial al cargar ventana
+        window.onload = conectarFirestore;
     </script>
 </body>
 </html>
