@@ -121,14 +121,18 @@
         /* PANEL DE ADMINISTRACIÓN */
         #view-admin { display: none; padding: 30px 20px; background-color: #0d0d0d; width: 100%; max-width: 900px; margin: 0 auto; }
         #view-admin.active { display: block; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; gap: 15px; flex-wrap: wrap; }
+        .admin-actions { display: flex; gap: 10px; }
+        .btn-refresh-admin { background: var(--accent-gold); color: #000; border: none; padding: 8px 16px; border-radius: 4px; font-family: 'Oswald', sans-serif; font-weight: bold; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-refresh-admin:hover { opacity: 0.9; }
+        .btn-back-admin { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        
         .pedido-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
         .pedido-info { flex: 1; }
         .pedido-meta { display: flex; gap: 15px; font-family: 'Oswald', sans-serif; color: var(--accent-gold); font-size: 1.2rem; margin-bottom: 10px; }
         .pedido-detalles { font-size: 0.95rem; color: #fff; line-height: 1.5; }
         .btn-completar { background: var(--green-accent); color: white; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
         .btn-completar:hover { opacity: 0.9; }
-        .btn-back-admin { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 15px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -354,21 +358,23 @@
     <div id="view-admin" class="app-view">
         <div class="admin-header">
             <h1 class="flow-title" style="margin:0; text-align:left;">PANEL DE COMANDAS</h1>
-            <button class="btn-back-admin" onclick="switchView('view-menu')">Volver al Menú</button>
+            <div class="admin-actions">
+                <button class="btn-refresh-admin" onclick="forzarActualizacionManual()"><i class="fa-solid fa-rotate"></i> Actualizar Pedidos</button>
+                <button class="btn-back-admin" onclick="switchView('view-menu')">Volver al Menú</button>
+            </div>
         </div>
         <div id="contenedor-pedidos-admin">
             <p style="color: var(--text-muted); text-align: center;">Cargando pedidos activos...</p>
         </div>
     </div>
 
-    <!-- Scripts estables v9 Compat de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // ¡NUEVA CONFIGURACIÓN VINCULADA AL PROYECTO "CARTA-EL-ROCIO"!
+        // CONFIGURACIÓN OFICIAL PROYECTO "CARTA-EL-ROCIO"
         const firebaseConfig = {
-            apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", // COMPRUEBA QUE SEA ESTA MISMA EN EL BOTÓN "Config"
+            apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", 
             authDomain: "carta-el-rocio.firebaseapp.com",
             projectId: "carta-el-rocio",
             storageBucket: "carta-el-rocio.appspot.com",
@@ -632,7 +638,7 @@
                     let nombreTacoCorreo = tipo.toUpperCase();
                     if (idiomaActual === 'ja') {
                         if (tipo === 'pollo') nombreTacoCorreo = "とり (Pollo)";
-                        if (tipo === 'carnitas') nombreTacoCorreo = "ぶta (Carnitas)";
+                        if (tipo === 'carnitas') nombreTacoCorreo = "ぶた (Carnitas)";
                         if (tipo === 'rum') nombreTacoCorreo = "ひつじ (Rum)";
                         if (tipo === 'alita') nombreTacoCorreo = "手羽元チキン (Alita)";
                         if (tipo === 'pescado') nombreTacoCorreo = "さかな (Pescado)";
@@ -693,22 +699,30 @@
         let listenerActivo = null;
         function conectarPanelAdminTiempoReal() {
             if (!db) return;
-            if (listenerActivo) return;
+            
+            // Si ya existía un listener abierto, lo cerramos para evitar duplicados
+            if (listenerActivo) {
+                listenerActivo();
+                listenerActivo = null;
+            }
 
+            const contenedor = document.getElementById("contenedor-pedidos-admin");
+            contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin-top: 20px;">Cargando pedidos en tiempo real...</p>`;
+
+            // Traemos toda la colección limpia sin filtros complejos en el servidor para evitar que falle en blanco
             listenerActivo = db.collection("pedidos")
-                .where("activo", "==", true)
                 .onSnapshot((snapshot) => {
-                    const contenedor = document.getElementById("contenedor-pedidos-admin");
                     contenedor.innerHTML = "";
-
-                    if (snapshot.empty) {
-                        contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin-top: 40px;">No hay pedidos activos en este momento.</p>`;
-                        return;
-                    }
+                    let pedidosActivos = 0;
 
                     snapshot.forEach((doc) => {
                         const pedido = doc.data();
                         const idDoc = doc.id;
+
+                        // Filtro seguro en el navegador del administrador
+                        if (pedido.activo !== true) return; 
+
+                        pedidosActivos++;
 
                         let horaTxt = "Ahora";
                         if (pedido.fecha) {
@@ -730,25 +744,36 @@
                                     <span>💰 ¥${pedido.total}</span>
                                 </div>
                                 <div class="pedido-detalles">
-                                    <strong>Tacos:</strong> ${pedido.tacos.join(", ") || "Ninguno"}<br>
-                                    <strong>Salsas:</strong> ${pedido.salsas.join(", ")}<br>
-                                    <strong>Extras/Bebidas:</strong> ${pedido.extras.join(", ") || "Ninguno"}
+                                    <strong>Tacos:</strong> ${pedido.tacos ? pedido.tacos.join(", ") : "Ninguno"}<br>
+                                    <strong>Salsas:</strong> ${pedido.salsas ? pedido.salsas.join(", ") : "Ninguno"}<br>
+                                    <strong>Extras/Bebidas:</strong> ${pedido.extras ? pedido.extras.join(", ") : "Ninguno"}
                                 </div>
                             </div>
                             <button class="btn-completar" onclick="archivarPedido('${idDoc}')">Completar</button>
                         `;
                         contenedor.appendChild(card);
                     });
+
+                    if (pedidosActivos === 0) {
+                        contenedor.innerHTML = `<p style="color: var(--text-muted); text-align: center; margin-top: 40px;">No hay pedidos activos en este momento.</p>`;
+                    }
                 }, (error) => {
                     console.error("Error en Snapshot de administración:", error);
+                    alert("Firestore ha rechazado la lectura. Detalles: " + error.message);
                 });
+        }
+
+        // Función del botón manual que fuerza limpiar el canal y reconectar
+        function forzarActualizacionManual() {
+            console.log("Forzando actualización manual de comandas...");
+            conectarPanelAdminTiempoReal();
         }
 
         function archivarPedido(idDoc) {
             if (!db) return;
             db.collection("pedidos").doc(idDoc).update({
                 activo: false
-            }).catch(err => alert("Error al archivar el pedido"));
+            }).catch(err => alert("Error al archivar el pedido: " + err.message));
         }
     </script>
 </body>
