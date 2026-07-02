@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bar El Rocío - Panel de Administración</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Montserrat:wght@300;400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <title>Bar El Rocío - Gestión Pedidos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -15,401 +13,101 @@
             --card-bg: #141414;
             --accent-gold: #c5a880;
             --text-light: #ffffff;
-            --text-muted: #a6a6a6;
             --border-color: #262626;
-            --green-accent: #2e7d32;
-            --red-accent: #c62828;
+            --green: #2e7d32;
+            --orange: #ef6c00;
+            --red: #c62828;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-light); 
-            font-family: 'Noto Sans JP', 'Montserrat', sans-serif; 
-            min-height: 100vh; 
-            padding-bottom: 40px; 
-        }
+        body { background-color: var(--bg-color); color: var(--text-light); font-family: 'Montserrat', sans-serif; min-height: 100vh; padding-bottom: 50px; }
 
-        header {
-            background-color: #080808; 
-            padding: 20px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid var(--border-color);
-        }
-        .header-title {
-            font-family: 'Oswald', sans-serif;
-            font-size: 1.6rem;
-            color: var(--accent-gold);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .btn-volver {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        .btn-volver:hover {
-            border-color: var(--accent-gold);
-            color: var(--accent-gold);
-        }
-
-        /* CONTENEDOR DEL FILTRO DE FECHA */
-        .filter-container {
-            max-width: 1400px;
-            margin: 20px auto 10px;
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .filter-container label {
-            font-family: 'Oswald', sans-serif;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.95rem;
-        }
-        .date-picker-input {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 1rem;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-        .date-picker-input:focus {
-            border-color: var(--accent-gold);
-        }
-        .date-picker-input::-webkit-calendar-picker-indicator {
-            filter: invert(1);
-            cursor: pointer;
-        }
-
-        /* DISEÑO RESPONSIVO EN REJILLA PARA PEDIDOS */
-        .grid-pedidos {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* ESTRUCTURA UNIFORME DE LAS TARJETAS */
-        .pedido-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 380px;
-            height: 100%;
-            box-sizing: border-box;
-            position: relative;
-        }
+        header { background: #080808; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .header-title { font-family: 'Oswald', sans-serif; font-size: 1.5rem; color: var(--accent-gold); text-transform: uppercase; }
         
-        /* Modificador estético si el pedido ya está archivado o completado */
-        .pedido-card.completado {
-            opacity: 0.5;
-            border-color: #1a1a1a;
-        }
+        .filter-container { max-width: 1400px; margin: 20px auto; padding: 0 20px; display: flex; align-items: center; gap: 10px; }
+        .date-picker { background: var(--card-bg); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 5px; }
 
-        .pedido-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-        .pedido-header h3 {
-            font-family: 'Oswald', 'Noto Sans JP', sans-serif;
-            font-size: 1.3rem;
-            color: var(--accent-gold);
-        }
-        .pedido-tiempo {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-align: right;
-        }
+        .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
 
-        /* CONTENEDOR INTERNO SCROLLABLE PARA ARTÍCULOS */
-        .pedido-articulos {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin: 15px 0;
-            padding-right: 5px;
-        }
-        .pedido-articulos ul {
-            list-style: none;
-        }
-        .pedido-articulos li {
-            font-size: 0.95rem;
-            padding: 6px 0;
-            border-bottom: 1px solid #1a1a1a;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .pedido-articulos li:last-child {
-            border-bottom: none;
-        }
-        .item-taco { color: var(--text-light); }
-        .item-extra { color: #dcdcdc; }
-        .item-salsa { font-size: 0.8rem; color: #8bc34a; padding-left: 15px; border: none !important; }
+        .pedido-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; min-height: 380px; }
+        .pedido-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+        .pedido-header h3 { color: var(--accent-gold); font-family: 'Oswald', sans-serif; }
+        
+        .pedido-articulos { flex-grow: 1; overflow-y: auto; font-size: 0.95rem; }
+        .pedido-articulos ul { list-style: none; }
+        .pedido-articulos li { padding: 5px 0; border-bottom: 1px solid #1a1a1a; }
 
-        /* SCROLL INTERNO DISCRETO */
-        .pedido-articulos::-webkit-scrollbar { width: 4px; }
-        .pedido-articulos::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-        .pedido-articulos::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
-
-        .pedido-footer {
-            border-top: 1px solid var(--border-color);
-            padding-top: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .total-pedido {
-            font-family: 'Oswald', sans-serif;
-            font-size: 1.25rem;
-            color: var(--accent-gold);
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .acciones-btn {
-            display: flex;
-            gap: 10px;
-        }
-        .btn-accion {
-            flex: 1;
-            border: none;
-            padding: 10px;
-            font-family: 'Oswald', sans-serif;
-            font-size: 1rem;
-            text-transform: uppercase;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-        }
-        .btn-completar { background-color: var(--green-accent); color: #fff; }
-        .btn-completar:hover { background-color: #256329; }
-        .btn-eliminar { background-color: var(--red-accent); color: #fff; }
-        .btn-eliminar:hover { background-color: #b71c1c; }
+        .pedido-footer { border-top: 1px solid var(--border-color); padding-top: 15px; }
+        .total-pedido { font-family: 'Oswald', sans-serif; font-size: 1.2rem; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        .acciones-btn { display: flex; gap: 10px; }
+        .btn-accion { flex: 1; border: none; padding: 10px; font-family: 'Oswald', sans-serif; color: white; cursor: pointer; border-radius: 4px; text-transform: uppercase; }
+        .btn-eliminar { background: var(--red); }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="header-title">
-            <i class="fa-solid fa-bell-concierge"></i> Bar El Rocío - Cocina y Barra
-        </div>
-        <a href="index.html" class="btn-volver"><i class="fa-solid fa-arrow-left"></i> Volver a Carta</a>
+        <div class="header-title">Panel de Control - Pedidos</div>
+        <a href="index.html" style="color:var(--text-light); text-decoration:none;"><i class="fa-solid fa-house"></i></a>
     </header>
 
-    <!-- CONTROL DE DÍAS -->
     <div class="filter-container">
-        <label for="fecha-filtro"><i class="fa-solid fa-calendar-days"></i> Ver pedidos del día:</label>
-        <input type="date" id="fecha-filtro" class="date-picker-input">
+        <label><i class="fa-solid fa-calendar"></i> Fecha:</label>
+        <input type="date" id="fecha-filtro" class="date-picker">
     </div>
 
-    <!-- PANEL PRINCIPAL DE PEDIDOS -->
-    <main class="grid-pedidos" id="contenedor-pedidos">
-        <p style="text-align:center; color:var(--text-muted); grid-column: 1/-1; padding: 40px;">Cargando base de datos...</p>
-    </main>
+    <main class="grid-pedidos" id="contenedor-pedidos"></main>
 
-    <!-- SDKs Firebase v9 Compatibles -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        // CONFIGURACIÓN OFICIAL PROYECTO FIRESTORE (REPLICADO DE INDEX)
-        const firebaseConfig = {
-            apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", 
-            authDomain: "carta-el-rocio.firebaseapp.com",
-            projectId: "carta-el-rocio",
-            storageBucket: "carta-el-rocio.appspot.com",
-            messagingSenderId: "41452655565",
-            appId: "1:41452655565:web:29efb05a1e9185cc49ea84"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", authDomain: "carta-el-rocio.firebaseapp.com", projectId: "carta-el-rocio", storageBucket: "carta-el-rocio.appspot.com", messagingSenderId: "41452655565", appId: "1:41452655565:web:29efb05a1e9185cc49ea84" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        let db;
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            } else {
-                firebase.app(); 
-            }
-            db = firebase.firestore();
-            console.log("Firebase enlazado con panel admin.");
-        } catch (error) {
-            console.error("Error al arrancar Firebase en Admin:", error);
-        }
+        let unsubscribe = null;
 
-        let listaPedidosUnsubscribe = null;
+        document.getElementById("fecha-filtro").valueAsDate = new Date();
+        document.getElementById("fecha-filtro").addEventListener("change", (e) => cargarPedidos(e.target.value));
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const selectorFecha = document.getElementById("fecha-filtro");
-            
-            // 1. Obtener fecha de hoy local en formato YYYY-MM-DD
-            const hoy = new Date();
-            const hoyString = hoy.getFullYear() + '-' + 
-                              String(hoy.getMonth() + 1).padStart(2, '0') + '-' + 
-                              String(hoy.getDate()).padStart(2, '0');
-            selectorFecha.value = hoyString;
+        function cargarPedidos(fecha) {
+            if (unsubscribe) unsubscribe();
+            const start = new Date(fecha + "T00:00:00").toISOString();
+            const end = new Date(fecha + "T23:59:59").toISOString();
 
-            // 2. Ejecutar la escucha en tiempo real de hoy
-            escucharPedidosPorFecha(hoyString);
+            unsubscribe = db.collection("pedidos").where("fecha", ">=", start).where("fecha", "<=", end).orderBy("fecha", "desc").onSnapshot(snap => {
+                const cont = document.getElementById("contenedor-pedidos");
+                cont.innerHTML = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const id = doc.id;
+                    let botones = "";
+                    
+                    if (d.estado === "pendiente") botones = `<button onclick="actualizar('${id}', 'listo')" class="btn-accion" style="background:var(--orange)">Listo</button>`;
+                    else if (d.estado === "listo") botones = `<button onclick="actualizar('${id}', 'pagado')" class="btn-accion" style="background:var(--green)">Pagado</button>`;
+                    else botones = `<span style="color:var(--green); font-weight:bold; margin:auto;"><i class="fa-solid fa-check-circle"></i> PAGADO</span>`;
 
-            // 3. Cambiar de canal si seleccionas otra fecha en el input
-            selectorFecha.addEventListener("change", (e) => {
-                escucharPedidosPorFecha(e.target.value);
+                    cont.insertAdjacentHTML("beforeend", `
+                        <div class="pedido-card">
+                            <div class="pedido-header"><h3>📍 ${d.mesa}</h3><span>${new Date(d.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span></div>
+                            <div class="pedido-articulos"><ul>${d.tacos.map(t=>`<li>${t}</li>`).join('')}${d.extras.map(e=>`<li>${e}</li>`).join('')}</ul></div>
+                            <div class="pedido-footer">
+                                <div class="total-pedido"><span>TOTAL:</span><span>¥${d.total}</span></div>
+                                <div class="acciones-btn">${botones}<button onclick="borrar('${id}')" class="btn-accion btn-eliminar"><i class="fa-solid fa-trash"></i></button></div>
+                            </div>
+                        </div>
+                    `);
+                });
             });
-        });
-
-        function escucharPedidosPorFecha(fechaSeleccionada) {
-            // Desconectar el canal anterior para no duplicar datos ni consumir de más
-            if (listaPedidosUnsubscribe) {
-                listaPedidosUnsubscribe();
-            }
-
-            if (!db) return;
-
-            // Calcular las fronteras horarias ISO del string seleccionado (00:00 a 23:59)
-            const inicioDia = new Date(fechaSeleccionada + "T00:00:00").toISOString();
-            const finDia = new Date(fechaSeleccionada + "T23:59:59").toISOString();
-
-            // Consulta en vivo
-            listaPedidosUnsubscribe = db.collection("pedidos")
-                .where("fecha", ">=", inicioDia)
-                .where("fecha", "<=", finDia)
-                .orderBy("fecha", "desc")
-                .onSnapshot((snapshot) => {
-                    const contenedor = document.getElementById("contenedor-pedidos");
-                    contenedor.innerHTML = "";
-
-                    if (snapshot.empty) {
-                        contenedor.innerHTML = `<p style="text-align:center; color:var(--text-muted); grid-column: 1/-1; padding: 40px; font-size:1.1rem;">No hay comandas registradas para este día.</p>`;
-                        return;
-                    }
-
-                    snapshot.forEach((doc) => {
-                        const pedido = doc.data();
-                        const id = doc.id;
-                        
-                        const tarjetaHTML = crearTarjetaPedidoHTML(id, pedido);
-                        contenedor.insertAdjacentHTML("beforeend", tarjetaHTML);
-                    });
-                }, (error) => {
-                    console.error("Error al escuchar comandas filtradas:", error);
-                    // Si te salta error de índice aquí en la consola del navegador, haz clic en el link que te genera
-                });
         }
 
-        function crearTarjetaPedidoHTML(id, datos) {
-            // Convertir la estampa ISO a hora legible local
-            let horaFormateada = "A tiempo";
-            if (datos.fecha) {
-                const f = new Date(datos.fecha);
-                horaFormateada = String(f.getHours()).padStart(2, '0') + ":" + String(f.getMinutes()).padStart(2, '0');
-            }
+        function actualizar(id, est) { db.collection("pedidos").doc(id).update({estado: est}); }
+        function borrar(id) { if(confirm("¿Borrar pedido?")) db.collection("pedidos").doc(id).delete(); }
 
-            // Filtrar y renderizar ítems
-            let listadoHTML = "";
-            
-            if (datos.tacos && datos.tacos.length > 0) {
-                datos.tacos.forEach(t => {
-                    listadoHTML += `<li class="item-taco"><i class="fa-solid fa-wrapper"></i> ${t}</li>`;
-                });
-                // Añadir siempre el recordatorio visual de salsas que añade tu index automáticamente
-                listadoHTML += `<li class="item-salsa"><i class="fa-solid fa-bacon"></i> + Salsa Verde</li>`;
-                listadoHTML += `<li class="item-salsa"><i class="fa-solid fa-bacon"></i> + Guacamole</li>`;
-            }
-
-            if (datos.extras && datos.extras.length > 0) {
-                datos.extras.forEach(e => {
-                    listadoHTML += `<li class="item-extra"><i class="fa-solid fa-plus"></i> ${e}</li>`;
-                });
-            }
-
-            // Estilos dinámicos según estado para saber si el pedido está atendido o no
-            const esPendiente = datos.estado === "pendiente";
-            const claseCompletado = esPendiente ? "" : "completado";
-
-            return `
-                <div class="pedido-card ${claseCompletado}">
-                    <div class="pedido-header">
-                        <h3>📍 ${datos.mesa}</h3>
-                        <div class="pedido-tiempo">
-                            <span style="font-weight:600; font-size:1.1rem; display:block; color:var(--accent-gold);">${horaFormateada}</span>
-                            <span style="font-size:0.75rem; color:#777;">ID: ...${id.slice(-5)}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="pedido-articulos">
-                        <ul>
-                            ${listadoHTML}
-                        </ul>
-                    </div>
-                    
-                    <div class="pedido-footer">
-                        <div class="total-pedido">
-                            <span>TOTAL:</span>
-                            <span>¥${datos.total || 0}</span>
-                        </div>
-                        <div class="acciones-btn">
-                            ${esPendiente ? 
-                                `<button onclick="completarPedido('${id}')" class="btn-accion btn-completar"><i class="fa-solid fa-check"></i> Listo</button>` : 
-                                `<span style="text-align:center; color:#2e7d32; font-weight:bold; font-size:0.9rem; width:100%; padding: 5px 0;"><i class="fa-solid fa-circle-check"></i> Servido</span>`
-                            }
-                            <button onclick="eliminarPedido('${id}')" class="btn-accion btn-eliminar" title="Eliminar registro definitivamente"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // CAMBIAR ESTADO A COMPLETADO (Mantiene el historial para verlo en el día)
-        function completarPedido(id) {
-            if (!db) return;
-            db.collection("pedidos").doc(id).update({
-                estado: "completado"
-            })
-            .catch(err => console.error("Error al completar comanda:", err));
-        }
-
-        // BORRAR DE MANERA DEFINITIVA EL DOCUMENTO
-        function eliminarPedido(id) {
-            if (!confirm("¿Seguro que quieres borrar este pedido de la base de datos de forma permanente?")) return;
-            if (!db) return;
-            db.collection("pedidos").doc(id).delete()
-            .catch(err => console.error("Error al borrar comanda:", err));
-        }
+        cargarPedidos(document.getElementById("fecha-filtro").value);
     </script>
 </body>
 </html>
