@@ -2,46 +2,36 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Bar El Rocío - Administración</title>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Bar El Rocío - Gestión Profesional</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-color: #0d0d0d; --card-bg: #141414; --accent-gold: #c5a880; --text-light: #ffffff; --border-color: #262626; }
+        :root { --bg: #0d0d0d; --card: #141414; --gold: #c5a880; --border: #262626; --green: #2e7d32; --orange: #ef6c00; --red: #c62828; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--bg-color); color: var(--text-light); font-family: 'Montserrat', sans-serif; min-height: 100vh; padding-bottom: 40px; }
+        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; padding-bottom: 50px; }
+        
+        header { background: #080808; padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .filter-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .date-input { background: var(--card); color: white; padding: 10px; border: 1px solid var(--border); border-radius: 4px; }
 
-        header { background-color: #080808; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
-        .header-title { font-family: 'Oswald', sans-serif; font-size: 1.5rem; color: var(--accent-gold); text-transform: uppercase; }
-
-        /* Filtro de Fecha */
-        .filter-container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
-        .date-picker { background: var(--card-bg); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 5px; font-family: 'Montserrat'; }
-
-        /* Grid de Pedidos */
         .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-        .pedido-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; min-height: 350px; }
+        .pedido-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; min-height: 380px; }
+        .titulo-seccion { color: var(--gold); font-family: 'Oswald'; border-bottom: 1px solid #333; margin: 15px 0 5px; font-size: 0.85rem; text-transform: uppercase; }
+        .item { font-size: 0.95rem; padding: 4px 0; }
         
-        .pedido-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
-        .pedido-header h3 { font-family: 'Oswald'; color: var(--accent-gold); }
-        
-        .pedido-articulos { flex-grow: 1; overflow-y: auto; }
-        .pedido-articulos li { list-style: none; padding: 5px 0; border-bottom: 1px solid #1a1a1a; font-size: 0.95rem; }
-        
-        .pedido-footer { border-top: 1px solid var(--border-color); padding-top: 15px; }
-        .total-pedido { font-family: 'Oswald'; font-size: 1.2rem; display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .acciones-btn { display: flex; gap: 10px; }
-        .btn-accion { flex: 1; border: none; padding: 10px; font-family: 'Oswald'; cursor: pointer; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
+        .acciones { margin-top: auto; display: flex; gap: 5px; padding-top: 15px; }
+        button { flex: 1; border: none; padding: 10px; font-family: 'Oswald'; cursor: pointer; border-radius: 4px; text-transform: uppercase; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="header-title">Panel de Pedidos</div>
-        <a href="index.html" style="color:white; text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+        <div style="font-family: 'Oswald'; font-size: 1.5rem; color: var(--gold);">PANEL DE PEDIDOS</div>
+        <a href="index.html" style="color:white;"><i class="fa-solid fa-arrow-left"></i></a>
     </header>
 
     <div class="filter-container">
-        <input type="date" id="fecha-filtro" class="date-picker">
+        <input type="date" id="fecha-filtro" class="date-input">
     </div>
 
     <main class="grid-pedidos" id="contenedor-pedidos"></main>
@@ -54,49 +44,48 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        let unsubscribe = null;
-
-        // Fecha de hoy por defecto
         document.getElementById("fecha-filtro").valueAsDate = new Date();
-        document.getElementById("fecha-filtro").addEventListener("change", (e) => cargarPedidos(e.target.value));
+        document.getElementById("fecha-filtro").addEventListener("change", e => cargar(e.target.value));
 
-        function cargarPedidos(fecha) {
-            if (unsubscribe) unsubscribe();
+        function cargar(fecha) {
             const start = new Date(fecha + "T00:00:00").toISOString();
             const end = new Date(fecha + "T23:59:59").toISOString();
 
-            unsubscribe = db.collection("pedidos").where("fecha", ">=", start).where("fecha", "<=", end).orderBy("fecha", "desc").onSnapshot(snap => {
+            db.collection("pedidos").where("fecha", ">=", start).where("fecha", "<=", end).orderBy("fecha", "desc").onSnapshot(snap => {
                 const cont = document.getElementById("contenedor-pedidos");
                 cont.innerHTML = "";
-                
                 snap.forEach(doc => {
                     const d = doc.data();
                     const id = doc.id;
+                    const items = [...d.tacos, ...d.extras];
                     
+                    // Separación de artículos
+                    const bebidas = items.filter(i => /Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(i));
+                    const comida = items.filter(i => !/Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(i));
+
                     cont.insertAdjacentHTML("beforeend", `
                         <div class="pedido-card">
-                            <div class="pedido-header">
-                                <h3>📍 ${d.mesa}</h3>
-                                <span>${new Date(d.fecha).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                            <h3 style="color:var(--gold)">📍 ${d.mesa}</h3>
+                            <div class="titulo-seccion">Comida</div>
+                            ${comida.map(i => `<div class="item">• ${i}</div>`).join('')}
+                            <div class="titulo-seccion">Bebida</div>
+                            ${bebidas.map(i => `<div class="item">• ${i}</div>`).join('')}
+                            
+                            <div class="acciones">
+                                ${d.estado === 'pendiente' ? `<button style="background:var(--orange)" onclick="upd('${id}', 'listo')">LISTO</button>` : 
+                                  d.estado === 'listo' ? `<button style="background:var(--green)" onclick="upd('${id}', 'pagado')">PAGADO</button>` : 
+                                  `<span style="color:var(--green); text-align:center; width:100%; align-self:center; font-weight:bold;">✓ PAGADO</span>`}
+                                <button style="background:var(--red)" onclick="borrar('${id}')">X</button>
                             </div>
-                            <div class="pedido-articulos">
-                                <ul>${d.tacos.map(t=>`<li>${t}</li>`).join('')}${d.extras.map(e=>`<li>${e}</li>`).join('')}</ul>
-                            </div>
-                            <div class="pedido-footer">
-                                <div class="total-pedido"><span>TOTAL:</span><span>¥${d.total}</span></div>
-                                <div class="acciones-btn">
-                                    <button class="btn-accion" style="background:#ef6c00" onclick="borrar('${id}')">BORRAR</button>
-                                </div>
-                            </div>
-                        </div>
-                    `);
+                        </div>`);
                 });
             });
         }
 
+        function upd(id, est) { db.collection("pedidos").doc(id).update({estado: est}); }
         function borrar(id) { if(confirm("¿Borrar pedido?")) db.collection("pedidos").doc(id).delete(); }
 
-        cargarPedidos(document.getElementById("fecha-filtro").value);
+        cargar(document.getElementById("fecha-filtro").value);
     </script>
 </body>
 </html>
