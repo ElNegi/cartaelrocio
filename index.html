@@ -660,7 +660,7 @@
                 extras: listaExtrasFinal,
                 total: totalPrecioFinal,
                 activo: true, 
-                fecha: firebase.firestore.FieldValue.serverTimestamp()
+                fecha: new Date()
             })
             .then(() => {
                 alert(idiomaActual === 'ja' ? 'ご注文ありがとうございました！' : '¡Pedido enviado directamente a la barra!');
