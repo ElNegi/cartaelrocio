@@ -2,80 +2,87 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Bar El Rocío - Gestión Profesional</title>
+    <title>Bar El Rocío - Panel de Gestión</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg: #0d0d0d; --card: #141414; --gold: #c5a880; --green: #2e7d32; --orange: #ef6c00; --blue: #1565c0; }
-        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; margin: 0; }
+        :root { --bg: #0d0d0d; --card: #141414; --gold: #c5a880; --border: #262626; --green: #2e7d32; --orange: #ef6c00; --red: #c62828; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Montserrat', sans-serif; padding-bottom: 50px; }
         
-        .dashboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; align-items: start; }
-        .columna { background: #080808; border-radius: 8px; padding: 15px; min-height: 80vh; }
-        .columna h2 { color: var(--gold); text-align: center; margin-bottom: 15px; font-family: 'Oswald'; }
+        /* Filtro */
+        .filter-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .date-input { background: var(--card); color: white; padding: 10px; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; }
 
-        .pedido-card { background: var(--card); border-left: 4px solid var(--gold); padding: 15px; margin-bottom: 15px; border-radius: 4px; }
-        .seccion-item { font-size: 0.85rem; margin-bottom: 5px; }
-        .titulo-seccion { color: var(--gold); font-weight: bold; border-bottom: 1px solid #333; margin: 10px 0 5px; display: block; }
+        /* Grid igual que al principio */
+        .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
         
-        .acciones { display: flex; gap: 5px; margin-top: 10px; }
-        button { flex: 1; border: none; padding: 8px; cursor: pointer; color: white; border-radius: 3px; font-family: 'Oswald'; }
+        .pedido-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; min-height: 380px; }
+        .titulo-seccion { color: var(--gold); font-family: 'Oswald'; border-bottom: 1px solid #333; margin: 10px 0 5px; font-size: 0.8rem; text-transform: uppercase; }
+        .item { font-size: 0.9rem; padding: 3px 0; }
+        
+        .acciones { margin-top: auto; display: flex; gap: 5px; padding-top: 15px; }
+        button { flex: 1; border: none; padding: 10px; font-family: 'Oswald'; cursor: pointer; border-radius: 4px; text-transform: uppercase; color: white; }
     </style>
 </head>
 <body>
 
-    <div style="padding: 20px;">
-        <input type="date" id="fecha-filtro" style="padding: 10px; background: var(--card); color: white; border: 1px solid #333;">
+    <div class="filter-container">
+        <input type="date" id="fecha-filtro" class="date-input">
     </div>
 
-    <div class="dashboard">
-        <div class="columna"><h2 id="col-pendientes">PENDIENTES</h2><div id="list-pendiente"></div></div>
-        <div class="columna"><h2 id="col-listos">LISTOS (PARA COBRAR)</h2><div id="list-listo"></div></div>
-        <div class="columna"><h2 id="col-pagados">PAGADOS</h2><div id="list-pagado"></div></div>
-    </div>
+    <main class="grid-pedidos" id="contenedor-pedidos"></main>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        const db = firebase.initializeApp({apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", projectId: "carta-el-rocio"}).firestore();
-        
-        document.getElementById("fecha-filtro").valueAsDate = new Date();
-        document.getElementById("fecha-filtro").addEventListener("change", e => cargarPedidos(e.target.value));
+        const firebaseConfig = { apiKey: "AIzaSyA_JYPuZknSIgsBC_WmVKvvREzN5TnNXdk", projectId: "carta-el-rocio" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        function cargarPedidos(fecha) {
+        document.getElementById("fecha-filtro").valueAsDate = new Date();
+        document.getElementById("fecha-filtro").addEventListener("change", e => cargar(e.target.value));
+
+        function cargar(fecha) {
             const start = new Date(fecha + "T00:00:00").toISOString();
             const end = new Date(fecha + "T23:59:59").toISOString();
 
-            db.collection("pedidos").where("fecha", ">=", start).where("fecha", "<=", end).onSnapshot(snap => {
-                document.querySelectorAll('.columna > div').forEach(d => d.innerHTML = "");
+            db.collection("pedidos").where("fecha", ">=", start).where("fecha", "<=", end).orderBy("fecha", "desc").onSnapshot(snap => {
+                const cont = document.getElementById("contenedor-pedidos");
+                cont.innerHTML = "";
                 snap.forEach(doc => {
                     const d = doc.data();
                     const id = doc.id;
+                    const items = [...d.tacos, ...d.extras];
                     
-                    // Lógica de separación Comida/Bebida
-                    const bebidas = [...d.tacos, ...d.extras].filter(item => /Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(item));
-                    const comida = [...d.tacos, ...d.extras].filter(item => !/Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(item));
+                    // Separación real comida/bebida
+                    const bebidas = items.filter(i => /Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(i));
+                    const comida = items.filter(i => !/Cola|Café|Zumo|Cerveza|Carajillo|Sherry|Tequila/i.test(i));
 
-                    const html = `
+                    cont.insertAdjacentHTML("beforeend", `
                         <div class="pedido-card">
-                            <div style="font-weight:bold; color:var(--gold)">📍 ${d.mesa}</div>
-                            <span class="titulo-seccion">COMIDA</span>
-                            ${comida.map(i => `<div class="seccion-item">• ${i}</div>`).join('')}
-                            <span class="titulo-seccion">BEBIDA</span>
-                            ${bebidas.map(i => `<div class="seccion-item">• ${i}</div>`).join('')}
+                            <h3 style="color:var(--gold)">📍 ${d.mesa}</h3>
+                            <div class="titulo-seccion">Comida</div>
+                            ${comida.map(i => `<div class="item">• ${i}</div>`).join('')}
+                            <div class="titulo-seccion">Bebida</div>
+                            ${bebidas.map(i => `<div class="item">• ${i}</div>`).join('')}
+                            
                             <div class="acciones">
-                                ${d.estado === 'pendiente' ? `<button style="background:var(--orange)" onclick="upd('${id}', 'listo')">LISTO</button>` : ''}
-                                ${d.estado === 'listo' ? `<button style="background:var(--green)" onclick="upd('${id}', 'pagado')">PAGAR</button>` : ''}
-                                <button style="background:var(--blue)" onclick="upd('${id}', 'pendiente')">RESET</button>
+                                ${d.estado === 'pendiente' ? `<button style="background:var(--orange)" onclick="upd('${id}', 'listo')">LISTO</button>` : 
+                                  d.estado === 'listo' ? `<button style="background:var(--green)" onclick="upd('${id}', 'pagado')">PAGADO</button>` : 
+                                  `<span style="color:var(--green); text-align:center; width:100%; font-weight:bold">✓ PAGADO</span>`}
+                                <button style="background:var(--red)" onclick="borrar('${id}')">X</button>
                             </div>
-                        </div>`;
-                    document.getElementById('list-' + (d.estado || 'pendiente')).insertAdjacentHTML('beforeend', html);
+                        </div>`);
                 });
             });
         }
 
         function upd(id, est) { db.collection("pedidos").doc(id).update({estado: est}); }
-        cargarPedidos(document.getElementById("fecha-filtro").value);
+        function borrar(id) { if(confirm("¿Borrar?")) db.collection("pedidos").doc(id).delete(); }
+
+        cargar(document.getElementById("fecha-filtro").value);
     </script>
 </body>
 </html>
