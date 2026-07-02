@@ -630,7 +630,7 @@
                     let nombreTacoCorreo = tipo.toUpperCase();
                     if (idiomaActual === 'ja') {
                         if (tipo === 'pollo') nombreTacoCorreo = "とり (Pollo)";
-                        if (tipo === 'carnitas') nombreTacoCorreo = "ぶた (Carnitas)";
+                        if (tipo === 'carnitas') nombreTacoCorreo = "ぶta (Carnitas)";
                         if (tipo === 'rum') nombreTacoCorreo = "ひつじ (Rum)";
                         if (tipo === 'alita') nombreTacoCorreo = "手羽元チキン (Alita)";
                         if (tipo === 'pescado') nombreTacoCorreo = "さかな (Pescado)";
@@ -693,9 +693,9 @@
             if (!db) return;
             if (listenerActivo) return;
 
+            // Eliminado por completo el método orderBy() que exigía la creación de un Índice
             listenerActivo = db.collection("pedidos")
                 .where("activo", "==", true)
-                .orderBy("fecha", "asc")
                 .onSnapshot((snapshot) => {
                     const contenedor = document.getElementById("contenedor-pedidos-admin");
                     contenedor.innerHTML = "";
