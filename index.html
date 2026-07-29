@@ -18,6 +18,7 @@
             --text-muted: #a6a6a6;
             --border-color: #262626;
             --green-accent: #2e7d32;
+            --red-alert: #c0392b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,6 +51,7 @@
         }
         .loc-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); background: #1a1a1a; }
         .loc-btn i { font-size: 1.2rem; }
+        .loc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         #view-menu { display: none; padding: 0 0 40px 0; align-items: stretch; }
         #view-menu.active { display: block; }
@@ -67,13 +69,19 @@
         }
 
         .menu-container { max-width: 1100px; margin: 30px auto 0; padding: 0 20px; }
+
+        .repeat-order-note {
+            background: rgba(197,168,128,0.08); border: 1px solid var(--accent-gold); border-radius: 6px;
+            padding: 12px 16px; font-size: 0.9rem; color: var(--accent-gold); text-align: center; margin-bottom: 25px; display: none;
+        }
+        .repeat-order-note.show { display: block; }
         
         .tacos-premium-section {
             background: linear-gradient(135deg, #1c1a17 0%, #141414 100%);
             border: 1px solid var(--accent-gold); border-radius: 8px; padding: 30px; margin-bottom: 40px;
         }
         .taco-builder-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin: 25px 0; }
-        .taco-option-card { background: #0d0d0d; border: 1px solid var(--border-color); padding: 20px 10px; border-radius: 4px; text-align: center; }
+        .taco-option-card { background: #0d0d0d; border: 1px solid var(--border-color); padding: 20px 10px; border-radius: 4px; text-align: center; position: relative; }
         .taco-option-card h3 { font-size: 1.05rem; white-space: nowrap; }
         
         .item-counter-control { display: flex; justify-content: center; align-items: center; gap: 12px; }
@@ -97,6 +105,17 @@
         .item-info-text { flex: 1; }
         .item-info-text p { font-weight: 500; font-size: 1rem; }
         .item-info-text span { font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 2px; }
+
+        /* STOCK: sin existencias */
+        .agotado { opacity: 0.4; }
+        .agotado h3, .agotado p, .agotado .item-info-text p { text-decoration: line-through; }
+        .agotado-badge {
+            display: inline-block; background: var(--red-alert); color: #fff; font-size: 0.7rem;
+            padding: 2px 7px; border-radius: 3px; margin-left: 8px; font-weight: bold; text-transform: uppercase;
+            vertical-align: middle;
+        }
+        .item-list-row.agotado .item-counter-control button,
+        .taco-option-card.agotado .item-counter-control button { cursor: not-allowed; }
 
         .order-bar {
             position: fixed; bottom: 0; left: 0; right: 0; background: #141414;
@@ -159,6 +178,9 @@
         </header>
 
         <main class="menu-container">
+
+            <div class="repeat-order-note" id="repeat-order-note"></div>
+
             <section class="tacos-premium-section">
                 <h2 class="card-header-main" style="border:none; margin:0; justify-content:center; text-align:center; flex-direction:column; gap:5px;">
                     <span id="cat-tacos">🌮 ミゲルのタコス / Los tacos de Miguel</span>
@@ -171,7 +193,7 @@
                 </div>
 
                 <div class="taco-builder-grid">
-                    <div class="taco-option-card">
+                    <div class="taco-option-card" id="card-pollo">
                         <h3 id="t-pollo">🍗 Pollo</h3>
                         <div class="item-counter-control" style="margin-top:15px;">
                             <button onclick="changeTaco('pollo', -1)">-</button>
@@ -179,7 +201,7 @@
                             <button onclick="changeTaco('pollo', 1)">+</button>
                         </div>
                     </div>
-                    <div class="taco-option-card">
+                    <div class="taco-option-card" id="card-carnitas">
                         <h3 id="t-carnitas">🐷 Carnitas</h3>
                         <div class="item-counter-control" style="margin-top:15px;">
                             <button onclick="changeTaco('carnitas', -1)">-</button>
@@ -187,7 +209,7 @@
                             <button onclick="changeTaco('carnitas', 1)">+</button>
                         </div>
                     </div>
-                    <div class="taco-option-card">
+                    <div class="taco-option-card" id="card-rum">
                         <h3 id="t-rum">🐑 Rum</h3>
                         <div class="item-counter-control" style="margin-top:15px;">
                             <button onclick="changeTaco('rum', -1)">-</button>
@@ -195,7 +217,7 @@
                             <button onclick="changeTaco('rum', 1)">+</button>
                         </div>
                     </div>
-                    <div class="taco-option-card">
+                    <div class="taco-option-card" id="card-alita">
                         <h3 id="t-alita">🪶 Alita</h3>
                         <div class="item-counter-control" style="margin-top:15px;">
                             <button onclick="changeTaco('alita', -1)">-</button>
@@ -203,7 +225,7 @@
                             <button onclick="changeTaco('alita', 1)">+</button>
                         </div>
                     </div>
-                    <div class="taco-option-card">
+                    <div class="taco-option-card" id="card-pescado">
                         <h3 id="t-pescado">🐟 Pescado</h3>
                         <div class="item-counter-control" style="margin-top:15px;">
                             <button onclick="changeTaco('pescado', -1)">-</button>
@@ -226,7 +248,7 @@
                 <div style="display:flex; flex-direction: column; border-top:1px solid var(--border-color); padding-top:15px; gap:15px; margin-top:15px;">
                     
                     <!-- Opción Masa -->
-                    <div style="display:flex; justify-content:flex-end; align-items:center; gap:15px;">
+                    <div class="item-list-row" id="card-masa" style="border:none;">
                         <span id="btn-masa" style="font-size:0.95rem; font-weight:600;">Solo Masa / 生地のみ (+¥100)</span>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('masa', -1)">-</button>
@@ -236,7 +258,7 @@
                     </div>
 
                     <!-- Opción Jalapeño -->
-                    <div style="display:flex; justify-content:flex-end; align-items:center; gap:15px;">
+                    <div class="item-list-row" id="card-jalapeno" style="border:none;">
                         <span id="btn-jalapeno" style="font-size:0.95rem; font-weight:600;">Jalapeño (+¥50)</span>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('jalapeno', -1)">-</button>
@@ -253,7 +275,7 @@
                         <span id="cat-food">🥔 Patatas</span>
                         <span class="price-tag-main">¥300</span>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-fries">
                         <div class="item-info-text"><p id="item-fries">Patatas Fritas</p></div>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('fries', -1)">-</button>
@@ -261,7 +283,7 @@
                             <button onclick="changeExtraItem('fries', 1)">+</button>
                         </div>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-cheeseFries">
                         <div class="item-info-text"><p id="item-cheese-fries">Patatas con Queso</p></div>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('cheeseFries', -1)">-</button>
@@ -276,7 +298,7 @@
                         <span id="cat-drinks">🥤 Bebidas</span>
                         <span class="price-tag-main">¥200</span>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-cola">
                         <div class="item-info-text"><p>Coca-Cola</p></div>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('cola', -1)">-</button>
@@ -284,7 +306,7 @@
                             <button onclick="changeExtraItem('cola', 1)">+</button>
                         </div>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-coffee">
                         <div class="item-info-text"><p id="item-coffee">Café Frío</p></div>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('coffee', -1)">-</button>
@@ -292,7 +314,7 @@
                             <button onclick="changeExtraItem('coffee', 1)">+</button>
                         </div>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-orange">
                         <div class="item-info-text"><p id="item-orange">Zumo de Naranja</p></div>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('orange', -1)">-</button>
@@ -307,7 +329,7 @@
                         <span id="cat-alcohol">🍺 Alcohol</span>
                         <span class="price-tag-main">¥600</span>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-beer">
                         <div class="item-info-text"><p id="item-beer">Cerveza</p></div>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('beer', -1)">-</button>
@@ -315,7 +337,15 @@
                             <button onclick="changeExtraItem('beer', 1)">+</button>
                         </div>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-beerNA">
+                        <div class="item-info-text"><p id="item-beerNA">Cerveza Sin Alcohol</p></div>
+                        <div class="item-counter-control">
+                            <button onclick="changeExtraItem('beerNA', -1)">-</button>
+                            <span id="count-beerNA" class="counter-value">0</span>
+                            <button onclick="changeExtraItem('beerNA', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="item-list-row" id="card-carajillo">
                         <div class="item-info-text">
                             <p id="item-carajillo">Carajillo Frío</p>
                             <span id="carajillo-desc">Café frío con brandy español</span>
@@ -326,7 +356,7 @@
                             <button onclick="changeExtraItem('carajillo', 1)">+</button>
                         </div>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-sherry">
                         <div class="item-info-text">
                             <p id="item-sherry">Sherry</p>
                             <span id="sherry-desc">Vino de Jerez</span>
@@ -337,7 +367,7 @@
                             <button onclick="changeExtraItem('sherry', 1)">+</button>
                         </div>
                     </div>
-                    <div class="item-list-row">
+                    <div class="item-list-row" id="card-tequila">
                         <div class="item-info-text"><p id="item-tequila">Tequila</p></div>
                         <div class="item-counter-control">
                             <button onclick="changeExtraItem('tequila', -1)">-</button>
@@ -381,10 +411,14 @@
 
         let idiomaActual = 'ja'; 
         let mesaCliente = '';
-        
+        let mesaId = null; // identificador fijo de la mesa/silla, independiente del idioma (ej: "mesa-1", "silla-4")
+
+        // Tacos incluidos en el combo (mínimo depende de si la mesa ya tiene un pedido abierto)
         let tElegidos = { pollo: 0, carnitas: 0, rum: 0, alita: 0, pescado: 0 };
-        let totalTacosPermitidos = 3;
-        
+        let minTacosRequeridos = 3;      // 3 en el primer pedido de la mesa, 0 en pedidos posteriores
+        let totalTacosPermitidos = 3;    // "cupo" de tacos activado por el cliente (combo + extras)
+        let mesaTieneEstadoAbierto = false; // true si la mesa ya tiene un pedido sin cobrar
+
         let itemsAdicionales = {
             masa: { cantidad: 0, precio: 100 },
             jalapeno: { cantidad: 0, precio: 50 },
@@ -394,10 +428,16 @@
             coffee: { cantidad: 0, precio: 200 },
             orange: { cantidad: 0, precio: 200 },
             beer: { cantidad: 0, precio: 600 },
+            beerNA: { cantidad: 0, precio: 600 },
             carajillo: { cantidad: 0, precio: 600 },
             sherry: { cantidad: 0, precio: 600 },
             tequila: { cantidad: 0, precio: 600 }
         };
+
+        // Disponibilidad de stock (por defecto todo disponible hasta que llegue el listener de Firestore)
+        let stockDisponible = {};
+        ['pollo','carnitas','rum','alita','pescado','masa','jalapeno','fries','cheeseFries','cola','coffee','orange','beer','beerNA','carajillo','sherry','tequila']
+            .forEach(k => stockDisponible[k] = true);
 
         let totalPrecioFinal = 0;
 
@@ -422,17 +462,22 @@
                 txtTitleMesas: "Mesas", txtTitleSillas: "Sillas (Barra)",
                 tacoStatus: "Tacos seleccionados: {current} de {max}",
                 cartSummary: "📍 {loc} | Tacos: {tacos} un. | Extras: {ext} uds.",
-                tacoError: "Debes elegir exactamente tus {max} tacos.",
+                tacoError: "Debes elegir al menos {max} tacos.",
                 btnSubmit: "Enviar Pedido",
+                orderSentAlert: "¡Pedido enviado!",
                 menuTacosTitle: "🌮 ミゲルのタコス / Los tacos de Miguel",
                 tacoRules: "Tacos 3 piezas. Incluye salsa verde y guacamole.",
                 fries: "Patatas Fritas", cheeseFries: "Patatas con Queso", coffee: "Café Frío", orange: "Zumo de Naranja",
-                beer: "Cerveza", carajillo: "Carajillo Frío", carajilloDesc: "Café frío con brandy español",
+                beer: "Cerveza", beerNA: "Cerveza Sin Alcohol", carajillo: "Carajillo Frío", carajilloDesc: "Café frío con brandy español",
                 sherry: "Sherry", sherryDesc: "Vino de Jerez", tequila: "Tequila",
                 catFood: "🥔 Patatas", catDrinks: "🥤 Bebidas", catAlcohol: "🍺 Alcohol",
                 btnExtraTaco: "+ Taco Extra (+¥400)",
+                btnExtraTacoRepeat: "Tacos (¥400 c/u)",
                 masa: "Solo Masa (+¥100)",
-                jalapeno: "Jalapeño Extra (+¥50)"
+                jalapeno: "Jalapeño Extra (+¥50)",
+                outOfStock: "Lo sentimos, este producto no está disponible en este momento.",
+                agotadoLabel: "Agotado",
+                repeatOrderNote: "Esta mesa ya tiene un pedido en curso. Puedes pedir solo bebida, sin obligación de pedir tacos."
             },
             en: {
                 flowTableTitle: "Where are you seated?", flowTableSubtitle: "Select your exact location",
@@ -440,17 +485,22 @@
                 txtTitleMesas: "Tables", txtTitleSillas: "Chairs (Counter)",
                 tacoStatus: "Selected tacos: {current} of {max}",
                 cartSummary: "📍 {loc} | Tacos: {tacos} pcs. | Extras: {ext} pcs.",
-                tacoError: "You must choose exactly {max} tacos.",
+                tacoError: "You must choose at least {max} tacos.",
                 btnSubmit: "Send Order",
+                orderSentAlert: "Order sent!",
                 menuTacosTitle: "🌮 ミゲルのタコス / Los tacos de Miguel",
                 tacoRules: "3 Taco Assortment. Includes salsa verde and guacamole.",
                 fries: "French Fries", cheeseFries: "Cheesy Fries", coffee: "Iced Coffee", orange: "Orange Juice",
-                beer: "Beer", carajillo: "Iced Carajillo", carajilloDesc: "Traditional Spanish iced coffee with brandy",
+                beer: "Beer", beerNA: "Non-Alcoholic Beer", carajillo: "Iced Carajillo", carajilloDesc: "Traditional Spanish iced coffee with brandy",
                 sherry: "Sherry", sherryDesc: "Spanish fortified wine from Jerez", tequila: "Tequila Shot",
                 catFood: "🥔 Fries", catDrinks: "🥤 Drinks", catAlcohol: "🍺 Alcohol",
                 btnExtraTaco: "+ Extra Taco (+¥400)",
+                btnExtraTacoRepeat: "Tacos (¥400 each)",
                 masa: "Just Tortilla (+¥100)",
-                jalapeno: "Extra Jalapeño (+¥50)"
+                jalapeno: "Extra Jalapeño (+¥50)",
+                outOfStock: "Sorry, this item is currently unavailable.",
+                agotadoLabel: "Sold out",
+                repeatOrderNote: "This table already has an order in progress. You can order just drinks, tacos are not required."
             },
             ja: {
                 flowTableTitle: "どちらにお座りですか？", flowTableSubtitle: "ご自身の席番号を選択してください",
@@ -458,18 +508,23 @@
                 txtTitleMesas: "テーブル席", txtTitleSillas: "カウンター席",
                 tacoStatus: "選択されたタコス: {current} / {max}",
                 cartSummary: "📍 {loc} | タコス: {tacos}個 | サイド: {ext}個",
-                tacoError: "タコスをちょうど {max} 個選択してください。",
+                tacoError: "タコスを最低 {max} 個選択してください。",
                 btnSubmit: "注文を確定する",
+                orderSentAlert: "注文が送信されました！",
                 menuTacosTitle: "🌮 ミゲルのタコス / Los tacos de Miguel",
                 tacoRules: "タコス3種盛り合わせ。サルサベルデとワカモーレ付き。",
                 fries: "フライドポテト", cheeseFries: "チーズフライドポテト", coffee: "アイスコーヒー", orange: "オレンジジュース",
-                beer: "ビール", carajillo: "アイス・カラヒージョ", carajilloDesc: "スペイン伝統のブランデー入りアイスコーヒー",
+                beer: "ビール", beerNA: "ノンアルコールビール", carajillo: "アイス・カラヒージョ", carajilloDesc: "スペイン伝統のブランデー入りアイスコーヒー",
                 sherry: "シェリー", sherryDesc: "スペイン・ヘレス産の酒精強化ワイン", 
                 tequila: "テキーラshot",
                 catFood: "🥔 ポテト", catDrinks: "🥤 ドリンク", catAlcohol: "🍺 アルコール",
                 btnExtraTaco: "+ タコス追加 (+¥400)",
+                btnExtraTacoRepeat: "タコス（1個¥400）",
                 masa: "生地のみ (+¥100)",
-                jalapeno: "ハラペーニョ追加 (+¥50)"
+                jalapeno: "ハラペーニョ追加 (+¥50)",
+                outOfStock: "申し訳ございません。こちらの商品は現在ご注文いただけません。",
+                agotadoLabel: "品切れ",
+                repeatOrderNote: "このテーブルはすでに注文があります。タコスなしでドリンクだけの注文も可能です。"
             }
         };
 
@@ -489,14 +544,16 @@
             document.getElementById('item-orange').textContent = translations[lang].orange;
             document.getElementById('cat-alcohol').firstChild.textContent = translations[lang].catAlcohol;
             document.getElementById('item-beer').textContent = translations[lang].beer;
+            document.getElementById('item-beerNA').textContent = translations[lang].beerNA;
             document.getElementById('item-carajillo').textContent = translations[lang].carajillo;
             document.getElementById('carajillo-desc').textContent = translations[lang].carajilloDesc;
             document.getElementById('item-sherry').textContent = translations[lang].sherry;
             document.getElementById('sherry-desc').textContent = translations[lang].sherryDesc;
             document.getElementById('item-tequila').textContent = translations[lang].tequila;
-            document.getElementById('btn-extra-taco').textContent = translations[lang].btnExtraTaco;
             document.getElementById('btn-masa').textContent = translations[lang].masa;
             document.getElementById('btn-jalapeno').textContent = translations[lang].jalapeno;
+            document.getElementById('btn-order-submit').textContent = translations[lang].btnSubmit;
+            document.getElementById('repeat-order-note').textContent = translations[lang].repeatOrderNote;
             
             if (lang === 'ja') {
                 document.getElementById('t-pollo').textContent = "🍗 とり";
@@ -511,9 +568,18 @@
                 document.getElementById('t-alita').textContent = lang === 'en' ? "🪶 Wing" : "🪶 Alita";
                 document.getElementById('t-pescado').textContent = lang === 'en' ? "🐟 Fish" : "🐟 Pescado";
             }
+            actualizarTextoBotonExtraTaco();
             renderLocationButtons();
+            aplicarEstadoStock();
             updateCartUI();
             switchView('view-step-table');
+        }
+
+        function actualizarTextoBotonExtraTaco() {
+            const el = document.getElementById('btn-extra-taco');
+            el.textContent = minTacosRequeridos === 0
+                ? translations[idiomaActual].btnExtraTacoRepeat
+                : translations[idiomaActual].btnExtraTaco;
         }
 
         function renderLocationButtons() {
@@ -521,25 +587,79 @@
             const gridSillas = document.getElementById('grid-sillas');
             gridMesas.innerHTML = ''; gridSillas.innerHTML = '';
             for (let i = 1; i <= 2; i++) {
+                const id = `mesa-${i}`;
                 const label = `${translations[idiomaActual].lblMesa} ${i}`;
                 const btn = document.createElement('button');
                 btn.className = 'loc-btn'; btn.innerHTML = `<i class="fa-solid fa-table"></i> ${label}`;
-                btn.onclick = () => confirmLocation(label);
+                btn.onclick = () => confirmLocation(id, label);
                 gridMesas.appendChild(btn);
             }
             for (let i = 1; i <= 10; i++) {
+                const id = `silla-${i}`;
                 const label = `${translations[idiomaActual].lblSilla} ${i}`;
                 const btn = document.createElement('button');
                 btn.className = 'loc-btn'; btn.innerHTML = `<i class="fa-solid fa-chair"></i> ${label}`;
-                btn.onclick = () => confirmLocation(label);
+                btn.onclick = () => confirmLocation(id, label);
                 gridSillas.appendChild(btn);
             }
         }
 
-        function confirmLocation(loc) { mesaCliente = loc; switchView('view-menu'); }
+        // Comprueba si la mesa/silla elegida ya tiene un pedido pendiente o realizado (no pagado).
+        // Se identifica la mesa por un ID fijo (mesaId, ej: "mesa-1"), independiente del idioma,
+        // para que "Mesa 1", "テーブル 1" y "Table 1" se reconozcan como la misma mesa física.
+        // Si hay un pedido abierto, se trata de un pedido de seguimiento y no exige mínimo de tacos.
+        async function verificarEstadoMesa(id) {
+            mesaTieneEstadoAbierto = false;
+            if (!db) return;
+            try {
+                const snap = await db.collection("pedidos").where("mesaId", "==", id).get();
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if (d.estado !== 'pagado') mesaTieneEstadoAbierto = true;
+                });
+            } catch (e) {
+                console.error("No se pudo verificar el estado de la mesa:", e);
+            }
+        }
+
+        async function confirmLocation(id, label) {
+            mesaId = id;
+            mesaCliente = label;
+            document.getElementById('display-mesa').textContent = label;
+            switchView('view-menu');
+
+            await verificarEstadoMesa(id);
+
+            minTacosRequeridos = mesaTieneEstadoAbierto ? 0 : 3;
+            totalTacosPermitidos = minTacosRequeridos;
+            tElegidos = { pollo: 0, carnitas: 0, rum: 0, alita: 0, pescado: 0 };
+            ['pollo','carnitas','rum','alita','pescado'].forEach(t => {
+                const elCount = document.getElementById(`count-${t}`);
+                if (elCount) elCount.textContent = 0;
+            });
+            document.getElementById('extra-taco-count-val').textContent = totalTacosPermitidos - minTacosRequeridos;
+
+            const nota = document.getElementById('repeat-order-note');
+            if (mesaTieneEstadoAbierto) {
+                nota.textContent = translations[idiomaActual].repeatOrderNote;
+                nota.classList.add('show');
+            } else {
+                nota.classList.remove('show');
+            }
+
+            actualizarTextoBotonExtraTaco();
+            updateCartUI();
+        }
+
         function changeLocationFlow() { switchView('view-step-table'); }
         function switchView(viewId) { document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active')); document.getElementById(viewId).classList.add('active'); window.scrollTo(0,0); }
+
+        function avisoAgotado() {
+            alert(translations[idiomaActual].outOfStock);
+        }
+
         function changeTaco(tipo, val) { 
+            if (val === 1 && stockDisponible[tipo] === false) { avisoAgotado(); return; }
             let actual = Object.values(tElegidos).reduce((a, b) => a + b, 0);
             if (val === 1 && actual >= totalTacosPermitidos) return;
             if (val === -1 && tElegidos[tipo] <= 0) return;
@@ -547,17 +667,18 @@
         }
         function changeExtraTacoLimit(val) {
             if (val === 1) totalTacosPermitidos++;
-            else if (val === -1 && totalTacosPermitidos > 3) {
+            else if (val === -1 && totalTacosPermitidos > minTacosRequeridos) {
                 totalTacosPermitidos--;
                 let actual = Object.values(tElegidos).reduce((a, b) => a + b, 0);
                 if (actual > totalTacosPermitidos) {
                     for (let t in tElegidos) if (tElegidos[t] > 0) { tElegidos[t]--; document.getElementById(`count-${t}`).textContent = tElegidos[t]; break; }
                 }
             }
-            document.getElementById('extra-taco-count-val').textContent = totalTacosPermitidos - 3;
+            document.getElementById('extra-taco-count-val').textContent = totalTacosPermitidos - minTacosRequeridos;
             updateCartUI();
         }
         function changeExtraItem(key, val) {
+            if (val === 1 && stockDisponible[key] === false) { avisoAgotado(); return; }
             if (val === -1 && itemsAdicionales[key].cantidad <= 0) return;
             itemsAdicionales[key].cantidad += val;
             document.getElementById(`count-${key}`).textContent = itemsAdicionales[key].cantidad;
@@ -570,18 +691,86 @@
                 .replace("{current}", tacoSeleccionados)
                 .replace("{max}", totalTacosPermitidos);
 
-            let tacoExtraCost = totalTacosPermitidos > 3 ? (totalTacosPermitidos - 3) * 400 : 0;
+            // Precio de tacos: los primeros 3 cuestan 1200 en conjunto (combo), cada uno adicional 400.
+            // En pedidos de seguimiento (mínimo 0) sin llegar a 3, se cobra 400 por unidad.
+            let precioTacos;
+            if (totalTacosPermitidos >= 3) {
+                precioTacos = 1200 + (totalTacosPermitidos - 3) * 400;
+            } else {
+                precioTacos = totalTacosPermitidos * 400;
+            }
+
             let extraCost = 0; let cantExtras = 0;
             for (let item of Object.values(itemsAdicionales)) { extraCost += item.cantidad * item.precio; cantExtras += item.cantidad; }
-            totalPrecioFinal = (totalTacosPermitidos >= 3 ? 1200 : 0) + tacoExtraCost + extraCost;
+            totalPrecioFinal = precioTacos + extraCost;
             document.getElementById('cart-total').innerHTML = `Total: ¥${totalPrecioFinal}`;
             document.getElementById('cart-summary').textContent = translations[idiomaActual].cartSummary.replace("{loc}", mesaCliente).replace("{tacos}", tacoSeleccionados).replace("{ext}", cantExtras);
         }
+
+        // Aplica visualmente el estado de stock (tachado + rojo) y bloquea los contadores.
+        function aplicarEstadoStock() {
+            Object.keys(stockDisponible).forEach(key => {
+                const disponible = stockDisponible[key] !== false;
+                const card = document.getElementById(`card-${key}`);
+                if (!card) return;
+                card.classList.toggle('agotado', !disponible);
+
+                let badge = card.querySelector('.agotado-badge');
+                if (!disponible) {
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'agotado-badge';
+                        const titleEl = card.querySelector('h3, p');
+                        if (titleEl) titleEl.appendChild(badge);
+                    }
+                    badge.textContent = translations[idiomaActual].agotadoLabel;
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
+        }
+
+        if (db) {
+            db.collection("stock").onSnapshot((snapshot) => {
+                snapshot.forEach(doc => { stockDisponible[doc.id] = doc.data().disponible !== false; });
+                aplicarEstadoStock();
+            }, (error) => console.error("No se pudo leer el stock:", error));
+        }
+
         function enviarPedidoFirebase() {
+            let tacoSeleccionados = Object.values(tElegidos).reduce((a, b) => a + b, 0);
+
+            if (tacoSeleccionados < minTacosRequeridos) {
+                alert(translations[idiomaActual].tacoError.replace("{max}", minTacosRequeridos));
+                return;
+            }
+
+            // Comprobación defensiva de stock por si algo se agotó mientras se elegía
+            for (const [tipo, cant] of Object.entries(tElegidos)) {
+                if (cant > 0 && stockDisponible[tipo] === false) { avisoAgotado(); return; }
+            }
+            for (const [key, item] of Object.entries(itemsAdicionales)) {
+                if (item.cantidad > 0 && stockDisponible[key] === false) { avisoAgotado(); return; }
+            }
+
             let listaTacos = []; for(let [t,c] of Object.entries(tElegidos)) if(c>0) listaTacos.push(`${c}x ${t}`);
             let listaExtras = []; for(let [k,i] of Object.entries(itemsAdicionales)) if(i.cantidad>0) listaExtras.push(`${i.cantidad}x ${k}`);
-            db.collection("pedidos").add({ mesa: mesaCliente, tacos: listaTacos, extras: listaExtras, total: totalPrecioFinal, estado: "pendiente", fecha: new Date().toISOString() })
-            .then(() => { alert("¡Pedido enviado!"); location.reload(); });
+
+            db.collection("pedidos").add({
+                mesa: mesaCliente,
+                mesaId: mesaId,
+                tacos: listaTacos,
+                extras: listaExtras,
+                total: totalPrecioFinal,
+                estado: "pendiente",
+                fecha: new Date().toISOString(),        // hora exacta del pedido
+                horaBebidaLista: null,
+                horaComidaLista: null,
+                horaPagado: null,
+                metodoPago: null,
+                pedidoDeSeguimiento: mesaTieneEstadoAbierto
+            })
+            .then(() => { alert(translations[idiomaActual].orderSentAlert); location.reload(); });
         }
     </script>
 </body>
