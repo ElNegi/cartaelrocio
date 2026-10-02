@@ -1,0 +1,12 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const R=require('../functions/core');
+test('cobra únicamente los tacos seleccionados',()=>{assert.equal(R.calculate({pollo:3}).total,1200);assert.equal(R.calculate({pollo:4}).total,1600);});
+test('no admite pedidos vacíos, negativos, fraccionarios o productos inventados',()=>{for(const selection of [{},{pollo:0},{pollo:-1},{pollo:1.5},{inventado:3},{pollo:31}])assert.throws(()=>R.calculate(selection,R.CATALOG,{},true));});
+test('primer pedido mínimo de tres; seguimiento permite bebida o un solo taco',()=>{assert.throws(()=>R.calculate({cola:1}));assert.equal(R.calculate({cola:1},R.CATALOG,{},true).total,200);assert.equal(R.calculate({pollo:1},R.CATALOG,{},true).total,400);});
+test('bloquea productos agotados y ocultos',()=>{assert.throws(()=>R.calculate({pollo:3},R.CATALOG,{pollo:false}));assert.throws(()=>R.calculate({pollo:3},R.CATALOG.map(p=>({...p,active:false}))));});
+test('patatas antiguas van a entrantes; masa y jalapeño a extras de comida',()=>{for(const fries of ['fries','Patatas Fritas','French Fries','フライドポテト']){const g=R.sections({extras:[`1x ${fries}`,'2x masa','1x jalapeno','1x cola']});assert.equal(g.entrante.length,1);assert.equal(g.extra.length,2);assert.equal(g.bebida.length,1);}});
+test('las cuatro categorías quedan registradas y los extras requieren cocina',()=>{const quote=R.calculate({pollo:3,fries:1,jalapeno:2,beer:1});assert.equal(quote.total,2200);const o={items:quote.items};assert.deepEqual(R.requirements(o),{entranteLista:true,comidaLista:true,bebidaLista:true});assert.equal(R.ready({...o,comidaLista:true,bebidaLista:true}),false);assert.equal(R.ready({...o,comidaLista:true,bebidaLista:true,entranteLista:true}),true);});
+test('nuevos entrantes se clasifican sin cambiar el código',()=>{const catalog=R.validateCatalog([...R.CATALOG,{id:'croquetas',category:'entrante',price:500,names:{es:'Croquetas',en:'Croquettes',ja:'コロッケ'},active:true}]);assert.equal(R.sections({items:R.calculate({croquetas:2},catalog,{},true).items}).entrante[0].quantity,2);});
+test('ubicaciones reconocen pedidos anteriores en los tres idiomas',()=>{for(const name of R.aliases('mesa-1'))assert.equal(R.locationId({mesa:name}),'mesa-1');assert.throws(()=>R.location('mesa-99'));});
+test('caja usa fecha de Japón, incluso cerca del cambio de día UTC',()=>{assert.equal(R.day(new Date('2026-10-01T16:00:00Z')),'2026-10-02');});
+test('escapa HTML recibido en los datos',()=>{assert.equal(R.escape('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;');});

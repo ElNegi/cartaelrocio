@@ -1,0 +1,116 @@
+
+        :root {
+            --bg-color: #0d0d0d;
+            --card-bg: #141414;
+            --accent-gold: #c5a880;
+            --text-light: #ffffff;
+            --text-muted: #a6a6a6;
+            --border-color: #262626;
+            --btn-green: #2e7d32;
+            --btn-blue: #1565c0;
+            --btn-orange: #ef6c00;
+            --btn-red: #c0392b;
+            --btn-purple: #6a1b9a;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background-color: var(--bg-color); color: var(--text-light); font-family: 'Montserrat', sans-serif; padding: 20px; }
+        
+        .header-admin { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-gold); padding-bottom: 15px; margin-bottom: 20px; gap: 15px; flex-wrap: wrap; }
+        .header-admin h1 { font-family: 'Oswald', sans-serif; font-size: 2rem; color: var(--accent-gold); letter-spacing: 1px; }
+        .btn-refresh { background: var(--accent-gold); color: #000; border: none; padding: 10px 18px; border-radius: 4px; font-family: 'Oswald', sans-serif; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+        
+        /* PESTAÑAS DE NAVEGACIÓN */
+        .tabs-container { display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; overflow-x: auto; }
+        .tab-btn { background: #1a1a1a; border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px 20px; font-family: 'Oswald', sans-serif; font-size: 1.1rem; border-radius: 4px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .tab-btn:hover { border-color: var(--accent-gold); color: #fff; }
+        .tab-btn.active { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); font-weight: bold; }
+
+        /* TARJETAS DE COMANDAS */
+        .grid-pedidos { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+        .pedido-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; gap: 15px; border-top: 4px solid var(--border-color); }
+        .pedido-card.status-pendiente { border-top-color: var(--btn-orange); }
+        .pedido-card.status-realizado { border-top-color: var(--btn-blue); }
+        .pedido-card.status-pagado { border-top-color: var(--btn-green); }
+        
+        .pedido-meta { display: flex; justify-content: space-between; font-family: 'Oswald', sans-serif; color: var(--accent-gold); font-size: 1.25rem; border-bottom: 1px solid #1a1a1a; padding-bottom: 8px; }
+        .pedido-seguimiento-tag { font-size: 0.7rem; background: rgba(197,168,128,0.15); color: var(--accent-gold); padding: 2px 7px; border-radius: 3px; margin-left: 8px; vertical-align: middle; }
+
+        .timestamps-box { font-size: 0.78rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 3px; padding: 8px 0; border-bottom: 1px solid #1a1a1a; }
+        .timestamps-box span b { color: #ccc; }
+
+        /* DIVISION INTERNA COCINA/BARRA */
+        .bloque-cocina { background: #0d0d0d; border-radius: 4px; padding: 12px; margin-top: 5px; border-left: 3px solid #333; }
+        .bloque-cocina.listo { border-left-color: var(--btn-green); opacity: 0.6; }
+        .bloque-titulo { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .badge-listo { color: #81c784; font-size: 0.75rem; background: rgba(46,125,50,0.15); padding: 2px 6px; border-radius: 3px; }
+        .bloque-contenido { font-size: 0.95rem; line-height: 1.4; color: #fff; }
+
+        .total-pay { font-family: 'Oswald', sans-serif; font-size: 1.2rem; text-align: right; margin-top: 5px; color: #fff; }
+        
+        /* BOTONERÍA DINÁMICA */
+        .actions-layout { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-action { flex: 1; border: none; padding: 10px; font-family: 'Oswald', sans-serif; font-weight: bold; text-transform: uppercase; border-radius: 4px; cursor: pointer; color: white; display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 0.9rem; }
+        .btn-action-bebida { background: var(--btn-blue); }
+        .btn-action-comida { background: var(--btn-orange); }
+        .btn-action-cobrar { background: var(--btn-green); color: #fff; width: 100%; }
+        .btn-action:hover { opacity: 0.9; }
+        
+        .no-data { grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 60px 20px; font-size: 1.1rem; }
+
+        /* CAJA */
+        .caja-panel { max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .caja-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 25px; }
+        .caja-card h2 { font-family: 'Oswald', sans-serif; color: var(--accent-gold); font-size: 1.3rem; margin-bottom: 15px; }
+        .caja-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; font-size: 1.05rem; }
+        .caja-row:last-child { border-bottom: none; }
+        .caja-row b { color: var(--accent-gold); }
+        .caja-actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn-caja { border: none; padding: 12px 18px; font-family: 'Oswald', sans-serif; font-weight: bold; border-radius: 4px; cursor: pointer; color: #fff; font-size: 0.95rem; }
+        .btn-caja.modificar { background: var(--btn-blue); }
+        .btn-caja.finalizar { background: var(--btn-red); }
+        .btn-caja.abrir { background: var(--btn-green); }
+        .caja-historial-item { display:flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #1a1a1a; font-size: 0.9rem; }
+        .caja-historial-item:last-child { border-bottom: none; }
+
+        /* MESAS */
+        .mesas-panel { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+        .mesas-grupo-title { font-family: 'Oswald', sans-serif; font-size: 1.1rem; text-transform: uppercase; color: var(--accent-gold); border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+        .mesas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+        .mesa-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 8px; align-items: center; border-top: 4px solid var(--border-color); }
+        .mesa-card.libre { border-top-color: var(--btn-green); }
+        .mesa-card.ocupada { border-top-color: var(--btn-orange); }
+        .mesa-card .mesa-nombre { font-family: 'Oswald', sans-serif; font-size: 1.05rem; }
+        .mesa-card .mesa-estado { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 8px; border-radius: 3px; }
+        .mesa-card.libre .mesa-estado { color: #81c784; background: rgba(46,125,50,0.15); }
+        .mesa-card.ocupada .mesa-estado { color: #ffb74d; background: rgba(239,108,0,0.15); }
+        .btn-liberar-mesa { background: var(--btn-red); color: #fff; border: none; padding: 7px 12px; border-radius: 4px; font-family: 'Oswald', sans-serif; font-weight: bold; font-size: 0.8rem; cursor: pointer; width: 100%; }
+        .btn-liberar-mesa:hover { opacity: 0.9; }
+
+        /* STOCK */
+        .stock-panel { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+        .stock-item { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .stock-item.agotado-row { border-left: 4px solid var(--btn-red); }
+        .stock-item.disponible-row { border-left: 4px solid var(--btn-green); }
+        .stock-item .nombre { font-size: 1rem; }
+        .stock-item .nombre.tachado { text-decoration: line-through; color: var(--text-muted); }
+        .switch { position: relative; display: inline-block; width: 52px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider-toggle { position: absolute; cursor: pointer; top:0; left:0; right:0; bottom:0; background-color: #444; transition: .3s; border-radius: 28px; }
+        .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider-toggle { background-color: var(--btn-green); }
+        input:checked + .slider-toggle:before { transform: translateX(24px); }
+
+        /* MODAL */
+        .modal-overlay { display:none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.75); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: var(--card-bg); border: 1px solid var(--accent-gold); border-radius: 10px; padding: 30px; max-width: 420px; width: 100%; }
+        .modal-box h3 { font-family: 'Oswald', sans-serif; color: var(--accent-gold); font-size: 1.3rem; margin-bottom: 15px; text-align: center; }
+        .modal-box p.desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; text-align: center; }
+        .modal-input { width: 100%; padding: 12px; background: #0d0d0d; border: 1px solid var(--border-color); color: #fff; border-radius: 4px; font-size: 1.1rem; margin-bottom: 20px; }
+        .modal-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+        .modal-buttons button { flex: 1; min-width: 130px; border: none; padding: 14px; font-family: 'Oswald', sans-serif; font-weight: bold; border-radius: 4px; cursor: pointer; color: #fff; font-size: 0.95rem; }
+        .btn-paypay { background: var(--btn-purple); }
+        .btn-efectivo { background: var(--btn-green); }
+        .btn-cancelar { background: #333; }
+        .btn-confirmar { background: var(--accent-gold); color: #000; }
+    

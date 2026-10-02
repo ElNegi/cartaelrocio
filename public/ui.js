@@ -1,0 +1,11 @@
+'use strict';
+const UI=(()=>{
+  let timer;
+  function toast(message,error=false){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';el.setAttribute('role','status');document.body.append(el);}el.className='toast'+(error?' error':'');el.textContent=message;el.hidden=false;clearTimeout(timer);timer=setTimeout(()=>el.hidden=true,7000);}
+  function modal(title,html,wide=false){close();const layer=document.createElement('div');layer.className='dialog-overlay';layer.id='dialog';layer.innerHTML=`<section class="dialog ${wide?'wide':''}" role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1"><h2 id="dialog-title">${Rocio.escape(title)}</h2>${html}</section>`;document.body.append(layer);layer.querySelector('[data-close]')?.addEventListener('click',close);layer.addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='Tab'){const list=[...layer.querySelectorAll('button,input,select,textarea,a[href]')].filter(el=>!el.disabled&&!el.hidden);if(!list.length)return;const first=list[0],last=list.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}});layer.dataset.previous=document.activeElement.id||'';setTimeout(()=>layer.querySelector('input,button,select,textarea')?.focus(),0);return layer;}
+  function close(){const layer=document.getElementById('dialog');if(layer){const previous=layer.dataset.previous;layer.remove();if(previous)document.getElementById(previous)?.focus();}}
+  async function busy(button,fn){if(button?.disabled)return;const text=button?.textContent;if(button){button.disabled=true;button.textContent='…';}try{return await fn();}catch(e){toast(e.message||'No se pudo completar la operación.',true);throw e;}finally{if(button?.isConnected){button.disabled=false;button.textContent=text;}}}
+  const money=n=>'¥'+Number(n||0).toLocaleString('ja-JP');
+  function date(iso){if(!iso)return '—';const d=new Date(iso);return isNaN(d)?'—':d.toLocaleString('es-ES',{timeZone:'Asia/Tokyo',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
+  return {toast,modal,close,busy,money,date};
+})();

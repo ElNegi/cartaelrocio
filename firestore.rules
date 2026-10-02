@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() { return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+    match /admins/{uid} { allow get: if request.auth != null && request.auth.uid == uid; allow list, write: if false; }
+    match /config/menu { allow read: if true; allow write: if false; }
+    match /stock/{id} { allow read: if true; allow write: if false; }
+    match /{collection}/{id} {
+      allow read: if admin() && collection in ['pedidos','pagos','caja','papelera','auditoria','mesas'];
+      allow write: if false;
+    }
+  }
+}
