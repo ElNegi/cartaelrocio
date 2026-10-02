@@ -1,4 +1,10 @@
-rules_version = '2';
+const fs=require('fs'),path=require('path');
+const n=20,slots=Array.from({length:n},(_,i)=>i);
+const checks=slots.slice(0,7).map(i=>`(size <= ${i} || validItem(d.items[${i}], menu.productIndex[d.productIds[${i}]], ${i===0?"{'total':0,'units':0,'tacos':0}":`d.items[${i-1}].running`}))`).join('\n        && ');
+const lineChecks=indices=>indices.map(i=>`(size <= ${i} || validItem(order.items[${i}], menu.productIndex[order.productIds[${i}]], order.items[${i-1}].running))`).join('\n        && ');
+const remaining=lineChecks(slots.slice(7,14));
+const seatChecks=lineChecks(slots.slice(14));
+const rules=`rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function admin() { return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
@@ -27,15 +33,9 @@ service cloud.firestore {
         && d.estado == 'pendiente' && d.createdAt == request.time && d.fecha is string && d.fecha.size() == 24
         && d.entranteLista == false && d.comidaLista == false && d.bebidaLista == false
         && d.horaEntranteLista == null && d.horaComidaLista == null && d.horaBebidaLista == null && d.horaPagado == null && d.metodoPago == null
-        && d.items is list && d.items.size() > 0 && d.items.size() <= 20
+        && d.items is list && d.items.size() > 0 && d.items.size() <= ${n}
         && d.productIds is list && d.productIds.size() == d.items.size() && d.productIds.toSet().size() == d.items.size()
-        && (size <= 0 || validItem(d.items[0], menu.productIndex[d.productIds[0]], {'total':0,'units':0,'tacos':0}))
-        && (size <= 1 || validItem(d.items[1], menu.productIndex[d.productIds[1]], d.items[0].running))
-        && (size <= 2 || validItem(d.items[2], menu.productIndex[d.productIds[2]], d.items[1].running))
-        && (size <= 3 || validItem(d.items[3], menu.productIndex[d.productIds[3]], d.items[2].running))
-        && (size <= 4 || validItem(d.items[4], menu.productIndex[d.productIds[4]], d.items[3].running))
-        && (size <= 5 || validItem(d.items[5], menu.productIndex[d.productIds[5]], d.items[4].running))
-        && (size <= 6 || validItem(d.items[6], menu.productIndex[d.productIds[6]], d.items[5].running))
+        && ${checks}
         && last.units <= 100
         && d.total is int && d.total > 0 && d.total == last.total
         && d.pedidoDeSeguimiento == (count > 0)
@@ -51,12 +51,7 @@ service cloud.firestore {
         && d.openCount == countBefore(id) + 1 && d.abierta == true && d.revision == revBefore(id) + 1 && d.updatedAt == request.time
         && order.mesaId == id && order.requestId == d.requestId && order.createdAt == request.time
         && getAfter(/databases/$(database)/documents/solicitudes/$(d.requestId)).data.idPedido == d.requestId
-        && (size <= 14 || validItem(order.items[14], menu.productIndex[order.productIds[14]], order.items[13].running))
-        && (size <= 15 || validItem(order.items[15], menu.productIndex[order.productIds[15]], order.items[14].running))
-        && (size <= 16 || validItem(order.items[16], menu.productIndex[order.productIds[16]], order.items[15].running))
-        && (size <= 17 || validItem(order.items[17], menu.productIndex[order.productIds[17]], order.items[16].running))
-        && (size <= 18 || validItem(order.items[18], menu.productIndex[order.productIds[18]], order.items[17].running))
-        && (size <= 19 || validItem(order.items[19], menu.productIndex[order.productIds[19]], order.items[18].running));
+        && ${seatChecks};
     }
     function validReceipt(d, id) {
       let order = getAfter(/databases/$(database)/documents/pedidos/$(id)).data;
@@ -64,13 +59,7 @@ service cloud.firestore {
       let size = order.items.size();
       return receiptId(id) && d.keys().hasOnly(['idPedido','total','createdAt']) && d.idPedido == id
         && d.createdAt == request.time && order.createdAt == request.time && d.total == order.total
-        && (size <= 7 || validItem(order.items[7], menu.productIndex[order.productIds[7]], order.items[6].running))
-        && (size <= 8 || validItem(order.items[8], menu.productIndex[order.productIds[8]], order.items[7].running))
-        && (size <= 9 || validItem(order.items[9], menu.productIndex[order.productIds[9]], order.items[8].running))
-        && (size <= 10 || validItem(order.items[10], menu.productIndex[order.productIds[10]], order.items[9].running))
-        && (size <= 11 || validItem(order.items[11], menu.productIndex[order.productIds[11]], order.items[10].running))
-        && (size <= 12 || validItem(order.items[12], menu.productIndex[order.productIds[12]], order.items[11].running))
-        && (size <= 13 || validItem(order.items[13], menu.productIndex[order.productIds[13]], order.items[12].running));
+        && ${remaining};
     }
     match /admins/{uid} { allow get: if request.auth != null && request.auth.uid == uid; allow list, write: if false; }
     match /config/menu { allow read: if true; allow write: if admin(); }
@@ -82,3 +71,5 @@ service cloud.firestore {
     match /{collection}/{id} { allow read, write: if admin() && collection in ['pagos','caja','papelera']; }
   }
 }
+`;
+fs.writeFileSync(path.join(__dirname,'../firestore.rules'),rules);

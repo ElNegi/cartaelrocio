@@ -1,99 +1,56 @@
-# El Rocío · Carta y administración, versión 2
+# El Rocío: carta y administración
 
-Esta carpeta contiene el proyecto completo actualizado. La carta y el panel están en `public/`. No se ha desplegado en el proyecto de Firebase ni se han modificado sus datos reales.
+Web estática para Vercel o Firebase Hosting, conectada directamente a Firestore. Compatible con el plan Spark: no necesita Cloud Functions, Blaze ni facturación. Los clientes eligen ubicación y hacen pedidos sin iniciar sesión. Solo el personal usa correo y contraseña.
 
-## Qué cambia
+## Comportamiento
 
-- Se conserva la carta original, sus textos, colores, tipografías y estructura en español, inglés y japonés. Se mantiene la confirmación antes de enviar y se añade un menú superior que permanece visible con accesos a Tacos, Entrantes, Extras, Bebidas y Alcohol.
-- Registro de **entrantes** separado: las patatas se preparan aquí, nunca como bebidas.
-- Registro de **comida**, con **extras de comida** dentro: tortilla y jalapeño pertenecen a cocina.
-- Registro de **bebidas** separado. Cada área tiene su indicador, hora de preparación y botón de completado. El pedido pasa a cobro cuando todas sus áreas necesarias están listas.
-- Precio calculado con las cantidades elegidas. Primer pedido: al menos 3 tacos; pedidos adicionales de la ubicación: sin mínimo. Tacos a ¥400 por unidad.
-- El servidor valida catálogo, cantidades, disponibilidad y total. No se pueden enviar pedidos vacíos. Los reintentos de una misma solicitud no crean otra comanda.
-- El cobro y el ingreso se guardan en una transacción. El registro de pago usa el identificador del pedido para impedir cobros duplicados. PayPay sigue siendo un registro del método utilizado, no una pasarela de pago.
-- Administración con correo y contraseña de Firebase Authentication. Los datos de pedidos, caja y pagos son privados. Las escrituras directas desde el navegador están bloqueadas.
-- Borrar mueve un pedido a una papelera recuperable. Sus cobros se conservan. Para quitar un ingreso erróneo, primero usa **Anular cobro**, con motivo. No se permite anular cobros de cajas cerradas.
-- Corrección de productos, cantidades y ubicación, con recálculo y reinicio de preparación. Cancelación de comandas y liberación de mesas sin falsear ingresos.
-- Carta y stock editables desde administración: nombres en tres idiomas, precios, categorías, iconos, ocultación de productos y disponibilidad. Se pueden añadir futuros entrantes, extras y bebidas.
-- Panel de datos con buscador, inspección de registros, papelera, restauración, historial de cambios y exportación de una copia JSON.
-- Caja con fecha fija de Japón, cierre, diferencia entre efectivo esperado y contado, y reapertura con motivo.
+Se conserva el diseño y el texto originales en español, inglés y japonés, junto con la confirmación del pedido. El menú superior conduce a tacos, entrantes, extras, bebidas y alcohol. El control de tacos adicionales aparece junto a los tacos de Miguel; el primer pedido requiere tres tacos y las comandas adicionales de una ubicación abierta no tienen ese mínimo.
 
-## Probar sin tocar Firebase
+Las patatas se registran como entrantes. Tortilla y jalapeño son extras de comida. Cada pedido tiene sus áreas de preparación y queda listo para cobrar cuando se completan las necesarias. El catálogo y la disponibilidad admiten nuevos productos desde el panel.
 
-Necesitas Node.js 22 o posterior. Desde esta carpeta:
+Firestore valida cantidades, productos activos, disponibilidad, precios, nombres, total y el mínimo inicial. Pedido, recibo de reintento y ocupación se guardan juntos. Un pedido admite hasta 20 productos distintos y 100 unidades, con un máximo de 30 unidades por producto. Reintentar la misma solicitud no crea otra comanda, incluso después de retirar la original.
 
-```powershell
-node scripts/preview.cjs
-```
+El panel permite corregir, cancelar, cobrar, anular un cobro, liberar una ubicación, borrar y restaurar pedidos. Borrar conserva una copia en la papelera y mantiene los pagos. Para retirar un ingreso incorrecto utiliza «Anular cobro», con motivo; una caja cerrada bloquea esa operación. Cobro e ingreso se registran juntos y no se duplican ante clics simultáneos. PayPay registra el método utilizado; la aplicación no procesa pagos.
 
-Abre:
+«Datos y papelera» incluye búsqueda, consulta de registros, restauración, historial y copia JSON. No incluye borrado definitivo ni un importador que sobrescriba toda la base de datos.
 
-- Carta: <http://127.0.0.1:8765/index.html?demo=1>
-- Panel: <http://127.0.0.1:8765/admin.html?demo=1>
+## Activación gratuita en Firebase
 
-El modo de prueba solo funciona en localhost y guarda datos ficticios en este navegador. Carta y panel comparten esos datos entre pestañas. Desde «Datos y papelera» puedes reiniciar la prueba. No introduzcas datos reales en la demostración.
+1. Conserva el plan **Spark** de carta-el-rocio. No actives Functions, Blaze ni Identity Platform.
+2. Activa **Authentication → Método de acceso → Correo electrónico/contraseña**. No es necesario habilitar usuarios anónimos.
+3. En **Authentication → Usuarios** crea la cuenta del responsable. La contraseña la introduce y guarda el responsable; nunca va en GitHub ni en la carta.
+4. Copia su UID. En Firestore crea **admins/UID**, con ese UID como identificador y un campo nombre. Solo la cuenta autorizada tendrá acceso al panel; el cliente no puede concederse permisos.
+5. Añade el dominio final de Vercel a los dominios autorizados de Authentication. Añade localhost solo para probar el acceso real desde tu ordenador.
+6. Guarda una copia de los datos existentes. Evita pedidos y cambios simultáneos durante la activación. Publica **firestore.rules** en la pestaña Reglas de Firestore. Alternativa con la CLI oficial: firebase deploy --project carta-el-rocio --only firestore.
+7. Publica la web en Vercel. Entra primero en **/admin.html**: el primer acceso autorizado prepara catálogo y doce ubicaciones a partir de las comandas abiertas, sin modificar importes ni productos históricos. No borres manualmente config/menu o mesas mientras se aceptan pedidos.
+8. Abre la caja y comprueba una comanda de prueba desde una ubicación libre. Retírala mediante la papelera con motivo.
 
-Sin `?demo=1`, la aplicación utiliza Firebase y requiere la configuración del siguiente apartado. Abrir el HTML haciendo doble clic no es el método de prueba: utiliza el servidor local.
+Para autorizar otra cuenta de personal, crea su usuario y documento admins/UID. Eliminar ese documento revoca su acceso en las reglas. El panel no permite cambiar la lista de administradores.
 
-## Activar en Firebase
+El plan gratuito tiene cuotas; alcanzar los límites puede impedir nuevas operaciones. Esta configuración no activa cobros automáticos ni garantiza uso ilimitado. [Plan Spark y cuotas](https://firebase.google.com/docs/projects/billing/firebase-pricing-plans).
 
-El proyecto original apunta a **carta-el-rocio**. Se conservó su configuración pública de conexión. No existe ninguna contraseña de administrador en el código.
+La creación de pedidos exige validación; la lectura de comandas, caja, pagos, papelera y auditoría exige personal autorizado. El estado público de la ubicación solo indica si está abierta. Un identificador aleatorio de solicitud permite recuperar el resultado mínimo del reintento sin exponer su comanda. Las reglas no impiden enviar repetidamente pedidos válidos: el panel permite retirarlos de forma recuperable.
 
-1. En la consola de Firebase de ese proyecto, activa **Authentication → Sign-in method → Anonymous** para los clientes y **Email/Password** para el personal.
-2. Crea la cuenta del responsable en **Authentication → Users** con su propio correo y contraseña. Copia su UID.
-3. En Firestore crea el documento **`admins/UID_DEL_RESPONSABLE`**, usando ese UID como identificador, y añade un campo `nombre` con el nombre del responsable. La existencia de este documento autoriza a la cuenta. Añade otros UID igual cuando quieras dar acceso a personal. El panel no permite autoasignarse permisos.
-4. Confirma en Authentication que el dominio de Hosting está autorizado. Para usar autenticación real desde localhost, añade localhost a los dominios autorizados si no aparece.
-5. Cloud Functions necesita que el proyecto admita su despliegue y facturación (plan Blaze). Las llamadas usan la región `asia-northeast1`.
-6. Haz una copia de la base de datos existente antes del cambio. Durante el despliegue y la comprobación final, detén los pedidos de clientes para que no se mezcle la versión anterior con las reglas nuevas.
-7. Instala las dependencias del servidor y despliega **funciones, reglas y Hosting juntos**:
+## Datos antiguos y mantenimiento
 
-```powershell
-npm install --prefix functions
-node scripts/sync-core.cjs
-firebase login
-firebase deploy --project carta-el-rocio --only functions,firestore,hosting
-```
+Se reconocen las etiquetas antiguas de ubicación en los tres idiomas. Los productos antiguos se clasifican por identificador o nombre conocido; las patatas aparecen como entrantes. Los nuevos pedidos tienen schemaVersion: 3. No se migran masivamente ni se recalculan importes históricos.
 
-Necesitas la CLI oficial de Firebase instalada y una cuenta autorizada para ese proyecto. No publiques solo `public/`: las llamadas al servidor y las reglas también son parte necesaria de esta actualización. `firebase.json` publica exclusivamente `public/`; ni el servidor ni las pruebas ni este documento se sirven como página web.
+Los pedidos cobrados no permiten editar productos: anula el cobro, corrige, prepara y cobra de nuevo. Borrar una comanda cobrada conserva el ingreso. Cancelar o liberar conserva la comanda como cancelada. Restaurar recupera su estado y ocupación si seguía abierta.
 
-8. Entra en `/admin.html`, abre la caja y haz una prueba controlada de pedido, tres secciones listas y cobro. Comprueba que existe un único documento de pago y que caja refleja el importe correcto. Cancela o anula el cobro de la prueba y borra la comanda con motivo.
-9. Comprueba que, sin una cuenta autorizada, los datos privados y las escrituras directas a Firestore se rechazan. El HTML del panel puede descargarse públicamente; los datos y las acciones son los elementos protegidos.
-10. Si clientes tenían la carta antigua abierta, pídeles recargar: sus escrituras directas dejarán de funcionar con las reglas nuevas.
+El historial guarda usuario, acción, motivo y datos antes/después. La caja usa la fecha de Japón. La copia JSON lee todas las páginas de las colecciones del negocio; no es una instantánea transaccional. Descárgala sin operaciones simultáneas, preferiblemente después del cierre. No exporta usuarios de Authentication ni autorizaciones. La restauración del panel recupera pedidos de la papelera; conserva copias externas para otros problemas.
 
-Documentación oficial: [funciones invocables](https://firebase.google.com/docs/functions/callable), [condiciones de reglas de Firestore](https://firebase.google.com/docs/firestore/security/rules-conditions), [despliegue de funciones](https://firebase.google.com/docs/functions/get-started).
+## Desarrollo y comprobación
 
-## Datos existentes y mantenimiento
+Necesitas Node.js 22 o posterior. Ejecuta npm run preview y abre http://127.0.0.1:8765/index.html?demo=1 o admin.html?demo=1. La demostración solo funciona en localhost, usa datos ficticios del navegador y no toca Firebase.
 
-Las comandas anteriores se reconocen por `mesaId` o por sus etiquetas antiguas de mesa/asiento en español, inglés y japonés. Los productos antiguos se clasifican por sus identificadores o nombres conocidos. Los pedidos nuevos tienen `schemaVersion: 2` y una lista `items` con identificador, categoría, cantidad, nombre en cada idioma y precio de ese momento.
+npm test verifica cálculo, categorías, compatibilidad y los tres idiomas. npm run sync copia shared/core.js a public/core.js. Las reglas se generan con node scripts/spark-rules.cjs.
 
-Las patatas antiguas se muestran como entrantes. Si una comanda antigua figura «realizada» pero sus secciones no cumplen las reglas nuevas, usa **Corregir** para revisarla y volver a completar sus secciones. No se ejecuta ninguna migración masiva de pedidos ni se alteran importes históricos automáticamente.
+Para probar Firestore realmente, instala dependencias con npm install, utiliza Java 21 y ejecuta:
 
-Los pedidos cobrados no permiten editar productos. Para corregir un cobro equivocado: **Anular cobro → Corregir → completar secciones → Cobrar**. Si su caja está cerrada, el panel bloquea la anulación. La reapertura incluida opera sobre la caja de hoy; para una corrección contable de días anteriores revisa el caso y su respaldo antes de intervenir en la consola de Firebase.
+~~~sh
+npx firebase emulators:exec --project demo-rocio-spark --only firestore "npm run test:firebase"
+~~~
 
-Borrar una comanda cobrada NO quita dinero de caja. Borrar un pedido sin cobrar libera su ocupación de mesa. Restaurarlo recupera el estado original. Cancelar o liberar conserva la comanda bajo «Cancelados».
+Las pruebas validan pedidos sin sesión, datos privados, reintentos, stock, futuros entrantes, ocupación, cobros simultáneos, caja cerrada, correcciones, papelera y restauración. También prueban 20 productos y 100 unidades, precios y totales falsos, pedidos vacíos, alteraciones en distintas posiciones y escrituras incompletas sin recibo o mesa. Se borran datos solo en el proyecto de emulador demo-rocio-spark.
 
-La exportación JSON contiene todas las páginas de las colecciones de negocio y el historial de cambios. Las colecciones se leen una a una: si hay operaciones durante la descarga, no es una instantánea transaccional. Para un respaldo consistente, descarga después del cierre, sin operaciones simultáneas. Las cuentas de Authentication y la lista de administradores se gestionan en Firebase y no se exportan desde este panel.
-
-La restauración del panel recupera comandas de la papelera. No hay un importador general que sobrescriba toda la base de datos desde un archivo JSON. Para una recuperación total conserva además una exportación gestionada de Firestore con los procedimientos de tu proyecto.
-
-El historial `auditoria` guarda usuario, hora, motivo y datos antes/después de cada acción administrativa. Los clientes no pueden leerlo ni modificarlo. Por claridad contable, nunca se vacía la papelera desde la interfaz.
-
-## Verificación y desarrollo
-
-```powershell
-node --test --test-isolation=none tests/core.test.cjs tests/backend.test.cjs
-```
-
-Las pruebas verifican cálculo, stock, cantidades inválidas, entradas antiguas, categorías extensibles, acceso denegado, idempotencia, cobro atómico ante fallo, caja cerrada, papelera/restauración, correcciones, liberación y auditoría. Las pruebas del servidor ejecutan las funciones reales con un almacén simulado que exige lecturas antes de escrituras y commits completos; no sustituyen una validación de las reglas y permisos en Firebase.
-
-También se ha recorrido en navegador local el envío, las tres áreas de preparación, el cobro, la actualización de caja y el borrado/restauración. Las reglas, Authentication y el despliegue real necesitan verificarse en el proyecto al activarlo.
-
-Revisión de idiomas: español, inglés y japonés comprobados en navegador con selección de asiento, cantidades, confirmación y envío. Se conservan los textos originales; los mensajes nuevos, errores y controles se traducen. El primer pedido exige tres tacos; el pedido adicional permite solo bebida. La navegación fija llega a cada sección. Los pedidos ficticios de esta comprobación se movieron a la papelera y el ingreso ficticio se anuló. No se ha accedido a los pedidos reales ni se ha borrado ninguno: la consola Firebase solicita iniciar sesión.
-
-Para probar con emuladores de Firebase, instala las dependencias y arranca `firebase emulators:start`. Usa `?emulator=1` en las páginas servidas por el emulador de Hosting. Crea el usuario de prueba y su documento `admins/UID` en los emuladores. No mezcles `emulator=1` con `demo=1`.
-
-`functions/core.js` es la fuente de cálculo y clasificación compartida. Ejecuta `node scripts/sync-core.cjs` al modificarla para actualizar `public/core.js`.
-
-## Rectificación de alcance
-
-Se ha recuperado el diseño y los textos originales de la carta. El panel conserva el tema oscuro y las tipografías originales. Las funciones de revisión previa del pedido, edición de catálogo, anulación de cobros y reapertura de caja se habían añadido sin consulta específica. El usuario ha confirmado que la pantalla de revisión y las funciones adicionales se conservan; el diseño original se mantiene. No se ha publicado nada ni alterado datos reales.
+La prueba local no sustituye la comprobación de producción. [Reglas y transacciones](https://firebase.google.com/docs/firestore/security/rules-conditions), [pruebas de reglas](https://firebase.google.com/docs/rules/unit-tests).

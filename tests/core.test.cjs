@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const R=require('../functions/core');
+const R=require('../shared/core');
 test('cobra únicamente los tacos seleccionados',()=>{assert.equal(R.calculate({pollo:3}).total,1200);assert.equal(R.calculate({pollo:4}).total,1600);});
 test('no admite pedidos vacíos, negativos, fraccionarios o productos inventados',()=>{for(const selection of [{},{pollo:0},{pollo:-1},{pollo:1.5},{inventado:3},{pollo:31}])assert.throws(()=>R.calculate(selection,R.CATALOG,{},true));});
 test('primer pedido mínimo de tres; seguimiento permite bebida o un solo taco',()=>{assert.throws(()=>R.calculate({cola:1}));assert.equal(R.calculate({cola:1},R.CATALOG,{},true).total,200);assert.equal(R.calculate({pollo:1},R.CATALOG,{},true).total,400);});

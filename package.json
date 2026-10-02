@@ -1,1 +1,16 @@
-{"name":"carta-el-rocio","version":"2.0.0","private":true,"scripts":{"test":"node --test tests/*.test.cjs","sync":"node scripts/sync-core.cjs","preview":"node scripts/preview.cjs"}}
+{
+  "name": "carta-el-rocio",
+  "version": "3.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/core.test.cjs tests/languages.test.cjs",
+    "sync": "node scripts/sync-core.cjs",
+    "preview": "node scripts/preview.cjs",
+    "test:firebase": "node --test --test-isolation=none tests/firebase.test.cjs"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "5.0.2",
+    "firebase": "12.19.0",
+    "firebase-tools": "15.32.1"
+  }
+}

@@ -2,14 +2,14 @@
 const Service=(()=>{
   const local=['localhost','127.0.0.1','::1'].includes(location.hostname);
   const demo=local&&new URLSearchParams(location.search).get('demo')==='1';
-  const listeners=new Set();let db,auth,functions;
-  if(!demo){firebase.initializeApp(window.FIREBASE_CONFIG);db=firebase.firestore();auth=firebase.auth();functions=firebase.app().functions(window.FUNCTIONS_REGION);if(local&&new URLSearchParams(location.search).get('emulator')==='1'){auth.useEmulator('http://127.0.0.1:9099');db.useEmulator('127.0.0.1',8080);functions.useEmulator('127.0.0.1',5001);}}
+  const listeners=new Set();let db,auth,spark;
+  if(!demo){firebase.initializeApp(window.FIREBASE_CONFIG);db=firebase.firestore();auth=firebase.auth();spark=RocioSpark.create(db,auth,()=>firebase.firestore.FieldValue.serverTimestamp());if(local&&new URLSearchParams(location.search).get('emulator')==='1'){auth.useEmulator('http://127.0.0.1:9099');db.useEmulator('127.0.0.1',8080);}}
   const clone=x=>JSON.parse(JSON.stringify(x));
   function seed(){return {pedidos:{'demo-completo':{schemaVersion:2,mesaId:'mesa-1',mesa:'Mesa 1',items:[{...Rocio.CATALOG[0],quantity:3,unitPrice:400},{...Rocio.CATALOG[5],quantity:1,unitPrice:300},{...Rocio.CATALOG[8],quantity:1,unitPrice:50},{...Rocio.CATALOG[12],quantity:2,unitPrice:600}],total:2750,estado:'pendiente',fecha:new Date().toISOString(),pedidoDeSeguimiento:false},'demo-barra':{schemaVersion:2,mesaId:'silla-3',mesa:'Silla 3',items:[{...Rocio.CATALOG[0],quantity:3,unitPrice:400},{...Rocio.CATALOG[9],quantity:1,unitPrice:200}],total:1400,estado:'realizado',comidaLista:true,bebidaLista:true,fecha:new Date().toISOString()}},pagos:{},caja:{[Rocio.day()]:{efectivoInicial:10000,fechaInicio:new Date().toISOString(),cerrado:false}},stock:{},config:{menu:{products:clone(Rocio.CATALOG)}},papelera:{},auditoria:{},mesas:{}};}
   function read(){const raw=localStorage.getItem('rocio-demo-v2');const state=raw?JSON.parse(raw):seed();if(!state.config.menu.updatedAt)state.config.menu.products=clone(Rocio.CATALOG);return state;}
   function save(data){localStorage.setItem('rocio-demo-v2',JSON.stringify(data));listeners.forEach(fn=>fn());}
   if(demo){if(!localStorage.getItem('rocio-demo-v2'))save(seed());window.addEventListener('storage',()=>listeners.forEach(fn=>fn()));}
-  async function call(name,data){if(!demo)return (await functions.httpsCallable(name)(data)).data;const state=read(),orders=state.pedidos;const open=mesa=>Object.values(orders).some(p=>Rocio.locationId(p)===mesa&&['pendiente','realizado'].includes(p.estado));
+  async function call(name,data){if(!demo)return spark.call(name,data);const state=read(),orders=state.pedidos;const open=mesa=>Object.values(orders).some(p=>Rocio.locationId(p)===mesa&&['pendiente','realizado'].includes(p.estado));
     if(name==='mesaEstado')return {abierta:open(data.mesaId)};
     if(name==='crearPedido'){const key=data.requestId;if(orders[key])return {id:key,total:orders[key].total};const stock={};Object.entries(state.stock).forEach(([k,v])=>stock[k]=v.disponible);const quote=Rocio.calculate(data.selection,state.config.menu.products,stock,open(data.mesaId));orders[key]={schemaVersion:2,mesaId:data.mesaId,mesa:Rocio.location(data.mesaId).label,items:quote.items,total:quote.total,estado:'pendiente',fecha:new Date().toISOString(),pedidoDeSeguimiento:open(data.mesaId),entranteLista:false,comidaLista:false,bebidaLista:false};save(state);return {id:key,total:quote.total};}
     if(name!=='adminAccion')throw Error('Acción desconocida.');
@@ -35,6 +35,7 @@ const Service=(()=>{
   }
   function subscribe(collection,fn,onError=()=>{}){if(demo){const update=()=>fn(Object.entries(read()[collection]||{}).map(([id,data])=>({...clone(data),id})));listeners.add(update);update();return ()=>listeners.delete(update);}if(collection==='config')return db.doc('config/menu').onSnapshot(snap=>fn(snap.exists?[{...snap.data(),id:'menu'}]:[]),onError);return db.collection(collection).onSnapshot(snap=>fn(snap.docs.map(d=>({...d.data(),id:d.id}))),onError);}
   async function all(collection){if(demo)return Object.entries(read()[collection]||{}).map(([id,data])=>({...clone(data),id}));if(collection==='config'){const snap=await db.doc('config/menu').get();return snap.exists?[{...snap.data(),id:'menu'}]:[];}const result=[];let cursor;while(true){let query=db.collection(collection).orderBy(firebase.firestore.FieldPath.documentId()).limit(300);if(cursor)query=query.startAfter(cursor);const page=await query.get();result.push(...page.docs.map(d=>({...d.data(),id:d.id})));if(page.size<300)break;cursor=page.docs[page.docs.length-1];}return result;}
-  async function customer(){if(demo)return;if(!auth.currentUser)await auth.signInAnonymously();}
-  return {demo,call,subscribe,all,customer,auth,db,resetDemo:()=>save(seed())};
+  async function customer(){}
+  async function prepare(){if(!demo)await spark.init();}
+  return {demo,call,subscribe,all,customer,prepare,auth,db,resetDemo:()=>save(seed())};
 })();

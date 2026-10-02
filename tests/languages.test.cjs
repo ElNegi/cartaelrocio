@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const R=require('../functions/core');
+const R=require('../shared/core');
 const context=vm.createContext({window:{},document:{getElementById:()=>null},Rocio:R});
 vm.runInContext(fs.readFileSync(require.resolve('../public/translations.js'),'utf8'),context);
 vm.runInContext(fs.readFileSync(require.resolve('../public/ui.js'),'utf8'),context);
@@ -13,7 +13,7 @@ test('los tres idiomas incluyen todos los textos originales y todos los producto
   }
 });
 test('los errores de validación y conexión se presentan en el idioma elegido',()=>{
-  const errors=['Añade al menos un producto.','El primer pedido debe incluir al menos 3 tacos.','Producto agotado.','La carta ha cambiado.','Cantidad no válida.','El producto ya no está en la carta.','Espera unos segundos.','Ubicación no válida.','network request failed'];
+  const errors=['Añade al menos un producto.','El primer pedido debe incluir al menos 3 tacos.','Producto agotado.','La carta ha cambiado.','Cantidad no válida.','El producto ya no está en la carta.','Espera unos segundos.','Ubicación no válida.','El pedido admite hasta 20 productos distintos.','network request failed'];
   for(const lang of ['es','en','ja'])for(const message of errors){
     const result=vm.runInContext(`idiomaActual=${JSON.stringify(lang)}; errorMessage({message:${JSON.stringify(message)}})`,context);
     assert.ok(result.length);
